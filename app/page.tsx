@@ -49,33 +49,33 @@ export default function Home() {
           "terms": *[_type == "term"] | order(order asc),
           "audioTracks": *[_type == "audioTrack"]
         }`;
-        
+
         const data = await client.fetch(query);
-        
+
         if (data) {
           // Process CMS Audio Tracks
           const trackOverrides: any = {};
           data.audioTracks?.forEach((track: any) => {
-             const url = track.file ? fileUrlFor(track.file) : track.url;
-             if (url) {
-                trackOverrides[track.trackId] = {
-                   id: track.trackId,
-                   url: url,
-                   title: track.title,
-                   vibe: track.vibe
-                };
-             }
+            const url = track.file ? fileUrlFor(track.file) : track.url;
+            if (url) {
+              trackOverrides[track.trackId] = {
+                id: track.trackId,
+                url: url,
+                title: track.title,
+                vibe: track.vibe
+              };
+            }
           });
           setCustomTracks(Object.keys(trackOverrides).length > 0 ? { ...AUDIO_TRACKS, ...trackOverrides } : null);
 
           const processed = {
-             hero: data.hero,
-             narrative: data.narrative,
-             milestones: data.milestones?.map((m: any) => ({ ...m, image: resolveImage(m.image) })),
-             whyILikeYou: data.whyILikeYou,
-             futureMemories: data.futureMemories,
-             places: data.places?.map((p: any) => ({ ...p, image: resolveImage(p.image) })),
-             terms: data.terms,
+            hero: data.hero,
+            narrative: data.narrative,
+            milestones: data.milestones?.map((m: any) => ({ ...m, image: resolveImage(m.image) })),
+            whyILikeYou: data.whyILikeYou,
+            futureMemories: data.futureMemories?.map((fm: any) => ({ ...fm, image: resolveImage(fm.image) })),
+            places: data.places?.map((p: any) => ({ ...p, image: resolveImage(p.image) })),
+            terms: data.terms,
           };
           setCmsData(processed);
         }
@@ -90,48 +90,48 @@ export default function Home() {
   return (
     <AudioProvider initialTracks={customTracks}>
       <main className="w-full bg-brand-light text-brand-dark min-h-screen selection:bg-brand-red selection:text-white">
-        
+
         <AnimatePresence>
           {loading && <Preloader onComplete={() => setLoading(false)} />}
         </AnimatePresence>
 
         {!loading && (
           <>
-              <AudioPlayer />
-              <AmbientBackground />
-              
-              <div className="fixed inset-0 z-0 w-full h-full">
-                  <Hero content={cmsData?.hero} />
+            <AudioPlayer />
+            <AmbientBackground />
+
+            <div className="fixed inset-0 z-0 w-full h-full">
+              <Hero content={cmsData?.hero} />
+            </div>
+
+            <div className="relative z-10 flex flex-col mt-[100vh]">
+              {/* Removed overflow-hidden to allow sticky positioning in Milestones */}
+              <div className="animate-gradient-subtle rounded-t-[3rem] shadow-[0_-25px_50px_-12px_rgba(0,0,0,0.3)] pt-24 md:pt-32 pb-0 bg-brand-light">
+
+                <Narrative content={cmsData?.narrative} />
+
+                <div className="py-24 border-t border-brand-dark/5">
+                  <Marquee text="THE STORY SO FAR" className="text-brand-red" />
+                </div>
+
+                <Milestones content={cmsData?.milestones} />
+
+                <WhyILikeYou content={cmsData?.whyILikeYou} />
+
+                {/* Dark Sections Group */}
+                <div className="bg-brand-dark text-white relative z-20">
+                  <FutureMemories content={cmsData?.futureMemories} />
+
+                  <Places content={cmsData?.places} />
+
+                  <TermsAndConditions content={cmsData?.terms} />
+                </div>
+
+                <Proposal />
               </div>
-              
-              <div className="relative z-10 flex flex-col mt-[100vh]">
-                  {/* Removed overflow-hidden to allow sticky positioning in Milestones */}
-                  <div className="animate-gradient-subtle rounded-t-[3rem] shadow-[0_-25px_50px_-12px_rgba(0,0,0,0.3)] pt-24 md:pt-32 pb-0 bg-brand-light">
-                    
-                    <Narrative content={cmsData?.narrative} />
-                    
-                    <div className="py-24 border-t border-brand-dark/5">
-                        <Marquee text="THE STORY SO FAR" className="text-brand-red" />
-                    </div>
 
-                    <Milestones content={cmsData?.milestones} />
-
-                    <WhyILikeYou content={cmsData?.whyILikeYou} />
-                    
-                    {/* Dark Sections Group */}
-                    <div className="bg-brand-dark text-white relative z-20">
-                      <FutureMemories content={cmsData?.futureMemories} />
-
-                      <Places content={cmsData?.places} />
-
-                      <TermsAndConditions content={cmsData?.terms} />
-                    </div>
-
-                    <Proposal />
-                  </div>
-
-                  <Footer />
-              </div>
+              <Footer />
+            </div>
           </>
         )}
       </main>

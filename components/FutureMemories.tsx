@@ -136,13 +136,17 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
               className="group relative flex flex-col opacity-60 hover:opacity-100 transition-opacity"
             >
               <div className="aspect-[3/4] relative bg-[#0a0a0a] border border-white/10 overflow-hidden">
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-white/20">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mb-4">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                    <circle cx="12" cy="13" r="4" />
-                  </svg>
-                  <span className="font-display text-sm tracking-widest opacity-50">Pending Exposure</span>
-                </div>
+                {item.image ? (
+                  <img src={item.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt={item.title} />
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white/20">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mb-4">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                      <circle cx="12" cy="13" r="4" />
+                    </svg>
+                    <span className="font-display text-sm tracking-widest opacity-50">Pending Exposure</span>
+                  </div>
+                )}
               </div>
               <h3 className="font-display text-2xl uppercase mt-6 text-white/40 group-hover:text-white transition-colors">{item.title}</h3>
             </motion.div>
@@ -219,9 +223,9 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 z-10" />
 
                       <img
-                        src={`https://picsum.photos/seed/${currentIndex + 55}/1920/1080`}
+                        src={memoriesData[currentIndex].image || `https://picsum.photos/seed/${currentIndex + 55}/1920/1080`}
                         className="w-full h-full object-cover opacity-80"
-                        alt="Future Memory"
+                        alt={memoriesData[currentIndex].title}
                       />
                     </motion.div>
                   </motion.div>

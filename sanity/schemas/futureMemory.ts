@@ -16,6 +16,12 @@ export const futureMemory = defineType({
             type: 'text',
         }),
         defineField({
+            name: 'image',
+            title: 'Image',
+            type: 'image',
+            options: { hotspot: true },
+        }),
+        defineField({
             name: 'order',
             title: 'Display Order',
             type: 'number',
