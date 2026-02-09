@@ -1,7 +1,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { FUTURE_MEMORIES, AUDIO_TRACKS } from '../constants';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { useAudio } from './AudioProvider';
 
 interface FutureMemoriesProps {
@@ -9,18 +9,25 @@ interface FutureMemoriesProps {
 }
 
 const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { setTrack, togglePlay, isPlaying: isGlobalPlaying } = useAudio();
 
   // Experience State
   const [mode, setMode] = useState<'IDLE' | 'PLAYING'>('IDLE');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const wasPlayingRef = useRef(false);
 
   const memoriesData = content || FUTURE_MEMORIES;
 
-  // Handle Entrance (Pause global, start local)
+  // Trigger audio when section comes into view
+  const isInView = useInView(containerRef, { amount: 0.3 });
+  useEffect(() => {
+    if (isInView && mode === 'IDLE') setTrack(AUDIO_TRACKS.FUTURE);
+  }, [isInView, setTrack, mode]);
+
+  // Handle Entrance (Pause global, start reel)
   const startExperience = () => {
+    wasPlayingRef.current = isGlobalPlaying;
     if (isGlobalPlaying) {
       togglePlay(); // Pause global ambient
     }
@@ -28,45 +35,32 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
     setCurrentIndex(0);
   };
 
-  // Handle Exit (Resume global, stop local)
+  // Handle Exit (Resume global if it was playing before)
   const endExperience = () => {
     setMode('IDLE');
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
+    if (wasPlayingRef.current && !isGlobalPlaying) {
+      togglePlay();
     }
   };
 
-  // Audio & Slide Logic
+  // Slide Logic (Timed slideshow, no local audio)
   useEffect(() => {
     if (mode === 'PLAYING') {
-      const audio = new Audio(AUDIO_TRACKS.FUTURE.url);
-      audioRef.current = audio;
-      audio.volume = 1;
-      audio.loop = false; // Important: Stop when song ends
-
-      // When song ends, exit
-      audio.addEventListener('ended', endExperience);
-
-      // Play
-      audio.play().catch(e => {
-        console.error("Playback failed", e);
-        endExperience(); // Exit mode if audio fails to prevent stuck UI
-      });
-
       const SLIDE_DURATION = 4000; // 4 seconds per slide
+      const TOTAL_REEL_TIME = memoriesData.length * SLIDE_DURATION;
+
+      // Auto-end reel after all slides have shown
+      const endTimer = setTimeout(endExperience, TOTAL_REEL_TIME);
 
       const interval = setInterval(() => {
         setCurrentIndex(prev => {
-          // If we are at the last slide, we just stay there until song ends
           if (prev === memoriesData.length - 1) return prev;
           return prev + 1;
         });
       }, SLIDE_DURATION);
 
       return () => {
-        audio.pause();
-        audio.removeEventListener('ended', endExperience);
+        clearTimeout(endTimer);
         clearInterval(interval);
       };
     }

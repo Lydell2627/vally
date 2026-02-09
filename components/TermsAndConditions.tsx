@@ -1,7 +1,7 @@
 
-import React, { useRef, useState, useMemo } from 'react';
-import { TERMS_AND_CONDITIONS, UI_SFX } from '../constants';
-import { motion, useScroll, useTransform, MotionValue, AnimatePresence } from 'framer-motion';
+import React, { useRef, useState, useMemo, useEffect } from 'react';
+import { TERMS_AND_CONDITIONS, UI_SFX, AUDIO_TRACKS } from '../constants';
+import { motion, useScroll, useTransform, MotionValue, AnimatePresence, useInView } from 'framer-motion';
 import { useAudio } from './AudioProvider';
 
 const RaysBackground = () => (
@@ -24,8 +24,8 @@ const RaysBackground = () => (
 const Card: React.FC<{ term: any, index: number, total: number, progress: MotionValue<number> }> = ({ term, index, total, progress }) => {
   const step = 1 / total;
   const start = index * step;
-  const end = start + step * 1.5; 
-  
+  const end = start + step * 1.5;
+
   // Stable random values for rotation to prevent jitter during re-renders
   // We use useMemo with an empty dependency array so it's calculated once per component mount
   const randomRotationStart = useMemo(() => (Math.random() - 0.5) * 10, []);
@@ -34,10 +34,10 @@ const Card: React.FC<{ term: any, index: number, total: number, progress: Motion
   // Animate: Up and Out to the right slightly (like tossing a paper)
   const y = useTransform(progress, [start, end], ["-50%", "-300%"]);
   const x = useTransform(progress, [start, end], ["-50%", "100%"]); // Flies right
-  
+
   // Use the stable random values here
   const rotation = useTransform(progress, [start, end], [randomRotationStart, randomRotationEnd]);
-  
+
   const opacity = useTransform(progress, [start + step * 0.5, end], [1, 0]);
 
   // Paper texture effect overlay
@@ -45,39 +45,39 @@ const Card: React.FC<{ term: any, index: number, total: number, progress: Motion
 
   return (
     <motion.div
-       style={{ 
-         position: 'absolute',
-         top: '50%', 
-         left: '50%', 
-         y, x,
-         rotate: rotation,
-         opacity,
-         zIndex: total - index
-       }}
-       className="w-[85vw] max-w-[360px] aspect-[4/5] bg-[#fdfaf5] text-brand-dark rounded-lg shadow-2xl origin-bottom"
+      style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        y, x,
+        rotate: rotation,
+        opacity,
+        zIndex: total - index
+      }}
+      className="w-[85vw] max-w-[360px] aspect-[4/5] bg-[#fdfaf5] text-brand-dark rounded-lg shadow-2xl origin-bottom"
     >
-       {/* Paper Texture Overlay */}
-       <div className="absolute inset-0 pointer-events-none opacity-50 rounded-lg" style={{ backgroundImage: paperTexture }}></div>
-       
-       {/* Card Content */}
-       <div className="relative h-full flex flex-col p-8 border border-black/5">
-          <div className="w-8 h-8 rounded-full bg-brand-red text-white flex items-center justify-center font-display text-sm mb-6 shadow-sm">
-              {index + 1}
-          </div>
-          
-          <h3 className="font-display text-3xl uppercase mb-6 leading-[0.9] text-brand-dark">
-             {term.title}
-          </h3>
-          
-          <p className="font-serif text-lg leading-relaxed opacity-80">
-             {term.content}
-          </p>
+      {/* Paper Texture Overlay */}
+      <div className="absolute inset-0 pointer-events-none opacity-50 rounded-lg" style={{ backgroundImage: paperTexture }}></div>
 
-          <div className="mt-auto border-t border-brand-dark/10 pt-4 flex justify-between items-center opacity-40">
-             <span className="text-xs uppercase tracking-widest font-sans">Initial here:</span>
-             <div className="w-12 h-6 border-b border-brand-dark/30"></div>
-          </div>
-       </div>
+      {/* Card Content */}
+      <div className="relative h-full flex flex-col p-8 border border-black/5">
+        <div className="w-8 h-8 rounded-full bg-brand-red text-white flex items-center justify-center font-display text-sm mb-6 shadow-sm">
+          {index + 1}
+        </div>
+
+        <h3 className="font-display text-3xl uppercase mb-6 leading-[0.9] text-brand-dark">
+          {term.title}
+        </h3>
+
+        <p className="font-serif text-lg leading-relaxed opacity-80">
+          {term.content}
+        </p>
+
+        <div className="mt-auto border-t border-brand-dark/10 pt-4 flex justify-between items-center opacity-40">
+          <span className="text-xs uppercase tracking-widest font-sans">Initial here:</span>
+          <div className="w-12 h-6 border-b border-brand-dark/30"></div>
+        </div>
+      </div>
     </motion.div>
   )
 }
@@ -91,8 +91,14 @@ const TermsAndConditions: React.FC<TermsProps> = ({ content }) => {
   const [signature, setSignature] = useState("");
   const [isSigned, setIsSigned] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { playSfx } = useAudio();
-  
+  const { playSfx, setTrack } = useAudio();
+
+  // Audio trigger for the proposal section
+  const isInView = useInView(containerRef, { amount: 0.2 });
+  useEffect(() => {
+    if (isInView) setTrack(AUDIO_TRACKS.PROPOSAL);
+  }, [isInView, setTrack]);
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
@@ -107,7 +113,7 @@ const TermsAndConditions: React.FC<TermsProps> = ({ content }) => {
     if (!signature.trim()) return;
     setIsSubmitting(true);
     playSfx(UI_SFX.CLICK);
-    
+
     try {
       // Save signature to API
       await fetch('/api/save', {
@@ -128,108 +134,108 @@ const TermsAndConditions: React.FC<TermsProps> = ({ content }) => {
   };
 
   return (
-    <section 
-      ref={containerRef} 
+    <section
+      ref={containerRef}
       className="relative h-[450vh] bg-brand-dark overflow-clip"
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col items-center justify-center perspective-1000">
-        
+
         <RaysBackground />
 
         {/* Header - Fades out earlier to clear the stage */}
-        <motion.div 
-            style={{ opacity: useTransform(scrollYProgress, [0, 0.15], [1, 0]) }}
-            className="absolute top-24 text-center z-10 px-4 pointer-events-none"
+        <motion.div
+          style={{ opacity: useTransform(scrollYProgress, [0, 0.15], [1, 0]) }}
+          className="absolute top-24 text-center z-10 px-4 pointer-events-none"
         >
-             <h2 className="font-display text-5xl md:text-7xl uppercase text-white mb-2 tracking-tight">The Fine Print</h2>
-             <div className="w-24 h-1 bg-brand-red mx-auto mb-4" />
-             <p className="font-serif italic text-white/60 text-xl">Required Reading.</p>
+          <h2 className="font-display text-5xl md:text-7xl uppercase text-white mb-2 tracking-tight">The Fine Print</h2>
+          <div className="w-24 h-1 bg-brand-red mx-auto mb-4" />
+          <p className="font-serif italic text-white/60 text-xl">Required Reading.</p>
         </motion.div>
 
         {/* Stack of Cards */}
         <div className="relative w-full h-full max-w-lg perspective-1000">
-           {termsData.map((term, i) => (
-             <Card 
-                key={i} 
-                term={term} 
-                index={i} 
-                total={termsData.length} 
-                progress={scrollYProgress} 
-             />
-           ))}
+          {termsData.map((term, i) => (
+            <Card
+              key={i}
+              term={term}
+              index={i}
+              total={termsData.length}
+              progress={scrollYProgress}
+            />
+          ))}
         </div>
 
         {/* Interactive Signature Section - Fades in at end of scroll */}
-        <motion.div 
-             style={{ 
-                 opacity: signatureOpacity,
-                 y: signatureY
-             }}
-             className="absolute bottom-16 md:bottom-24 z-40 w-full flex flex-col items-center px-4"
+        <motion.div
+          style={{
+            opacity: signatureOpacity,
+            y: signatureY
+          }}
+          className="absolute bottom-16 md:bottom-24 z-40 w-full flex flex-col items-center px-4"
         >
-            <div className="bg-white/5 backdrop-blur-md p-8 md:p-12 rounded-xl border border-white/10 w-full max-w-lg text-center shadow-2xl relative overflow-hidden">
-                 <p className="font-serif italic text-white/80 text-xl mb-6">
-                    {isSigned ? "Agreement binding forever." : "I hereby accept the terms & conditions stated above."}
-                 </p>
-                 
-                 <div className="relative group max-w-sm mx-auto">
-                    <input 
-                        type="text" 
-                        value={signature}
-                        onChange={(e) => setSignature(e.target.value)}
-                        placeholder="Sign Name Here"
-                        disabled={isSigned || isSubmitting}
-                        className={`w-full bg-transparent border-b-2 ${isSigned ? 'border-brand-red/50 text-brand-red' : 'border-white/20 text-brand-red'} text-center font-serif italic text-4xl md:text-5xl outline-none placeholder:text-white/10 py-2 focus:border-brand-red transition-colors z-20 relative`}
-                    />
-                    {!isSigned && (
-                        <div className="absolute bottom-0 left-0 w-full h-px bg-brand-red scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-center" />
-                    )}
-                 </div>
+          <div className="bg-white/5 backdrop-blur-md p-8 md:p-12 rounded-xl border border-white/10 w-full max-w-lg text-center shadow-2xl relative overflow-hidden">
+            <p className="font-serif italic text-white/80 text-xl mb-6">
+              {isSigned ? "Agreement binding forever." : "I hereby accept the terms & conditions stated above."}
+            </p>
 
-                 <div className="mt-8 h-24 flex items-center justify-center relative">
-                    <AnimatePresence mode="wait">
-                        {isSigned ? (
-                            <motion.div 
-                                key="signed"
-                                initial={{ scale: 2, opacity: 0, rotate: -10 }}
-                                animate={{ scale: 1, opacity: 1, rotate: -12 }}
-                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                                className="border-4 border-brand-red text-brand-red px-8 py-2 inline-block rounded-lg mask-ink backdrop-blur-sm bg-brand-red/10"
-                            >
-                                <span className="font-display text-4xl uppercase tracking-widest font-bold">ACCEPTED</span>
-                                <div className="text-[10px] font-sans uppercase tracking-widest text-center border-t border-brand-red/50 mt-1 pt-1">
-                                    {new Date().toLocaleDateString()}
-                                </div>
-                            </motion.div>
-                        ) : signature.length > 2 ? (
-                            <motion.button 
-                                key="button"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.8 }}
-                                onClick={handleSign}
-                                disabled={isSubmitting}
-                                onMouseEnter={() => playSfx(UI_SFX.HOVER)}
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="bg-brand-red text-white px-8 py-3 rounded-sm font-display text-xl uppercase tracking-wider shadow-[0_0_30px_-5px_rgba(206,18,21,0.5)] hover:bg-white hover:text-brand-red transition-all disabled:opacity-50"
-                            >
-                                {isSubmitting ? "Signing..." : "Seal the Deal"}
-                            </motion.button>
-                        ) : (
-                            <motion.p 
-                                key="waiting"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="text-xs uppercase tracking-widest text-white/20"
-                            >
-                                Awaiting Signature...
-                            </motion.p>
-                        )}
-                    </AnimatePresence>
-                 </div>
+            <div className="relative group max-w-sm mx-auto">
+              <input
+                type="text"
+                value={signature}
+                onChange={(e) => setSignature(e.target.value)}
+                placeholder="Sign Name Here"
+                disabled={isSigned || isSubmitting}
+                className={`w-full bg-transparent border-b-2 ${isSigned ? 'border-brand-red/50 text-brand-red' : 'border-white/20 text-brand-red'} text-center font-serif italic text-4xl md:text-5xl outline-none placeholder:text-white/10 py-2 focus:border-brand-red transition-colors z-20 relative`}
+              />
+              {!isSigned && (
+                <div className="absolute bottom-0 left-0 w-full h-px bg-brand-red scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-center" />
+              )}
             </div>
+
+            <div className="mt-8 h-24 flex items-center justify-center relative">
+              <AnimatePresence mode="wait">
+                {isSigned ? (
+                  <motion.div
+                    key="signed"
+                    initial={{ scale: 2, opacity: 0, rotate: -10 }}
+                    animate={{ scale: 1, opacity: 1, rotate: -12 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    className="border-4 border-brand-red text-brand-red px-8 py-2 inline-block rounded-lg mask-ink backdrop-blur-sm bg-brand-red/10"
+                  >
+                    <span className="font-display text-4xl uppercase tracking-widest font-bold">ACCEPTED</span>
+                    <div className="text-[10px] font-sans uppercase tracking-widest text-center border-t border-brand-red/50 mt-1 pt-1">
+                      {new Date().toLocaleDateString()}
+                    </div>
+                  </motion.div>
+                ) : signature.length > 2 ? (
+                  <motion.button
+                    key="button"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    onClick={handleSign}
+                    disabled={isSubmitting}
+                    onMouseEnter={() => playSfx(UI_SFX.HOVER)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-brand-red text-white px-8 py-3 rounded-sm font-display text-xl uppercase tracking-wider shadow-[0_0_30px_-5px_rgba(206,18,21,0.5)] hover:bg-white hover:text-brand-red transition-all disabled:opacity-50"
+                  >
+                    {isSubmitting ? "Signing..." : "Seal the Deal"}
+                  </motion.button>
+                ) : (
+                  <motion.p
+                    key="waiting"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-xs uppercase tracking-widest text-white/20"
+                  >
+                    Awaiting Signature...
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>

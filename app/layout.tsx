@@ -5,7 +5,7 @@ import { Inter, Anton, Instrument_Serif } from "next/font/google";
 import SmoothScroll from '../components/SmoothScroll';
 import "./globals.css";
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
@@ -27,7 +27,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "A Love Story",
+  title: "Vally",
   description: "An immersive, storytelling-driven Valentine's proposal website inspired by high-end branding portfolios.",
 };
 
