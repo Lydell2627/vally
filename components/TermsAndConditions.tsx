@@ -23,8 +23,8 @@ const RaysBackground = () => (
 
 const Card: React.FC<{ term: any, index: number, total: number, progress: MotionValue<number> }> = ({ term, index, total, progress }) => {
   const step = 1 / total;
-  const start = index * step;
-  const end = start + step * 1.5;
+  const start = Math.min(index * step, 1);
+  const end = Math.min(start + step * 1.5, 1);
 
   // Stable random values for rotation to prevent jitter during re-renders
   // We use useMemo with an empty dependency array so it's calculated once per component mount
@@ -38,7 +38,8 @@ const Card: React.FC<{ term: any, index: number, total: number, progress: Motion
   // Use the stable random values here
   const rotation = useTransform(progress, [start, end], [randomRotationStart, randomRotationEnd]);
 
-  const opacity = useTransform(progress, [start + step * 0.5, end], [1, 0]);
+  const opacityStart = Math.min(start + step * 0.5, 1);
+  const opacity = useTransform(progress, [opacityStart, end], [1, 0]);
 
   // Paper texture effect overlay
   const paperTexture = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.1'/%3E%3C/svg%3E")`;
