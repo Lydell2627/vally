@@ -55,28 +55,28 @@ const Card: React.FC<{ term: any, index: number, total: number, progress: Motion
         opacity,
         zIndex: total - index
       }}
-      className="w-[85vw] max-w-[360px] aspect-[4/5] bg-[#fdfaf5] text-brand-dark rounded-lg shadow-2xl origin-bottom"
+      className="w-[85vw] max-w-[400px] aspect-[4/5] bg-[#fdfaf5] text-brand-dark rounded-sm shadow-2xl origin-bottom"
     >
-      {/* Paper Texture Overlay */}
-      <div className="absolute inset-0 pointer-events-none opacity-50 rounded-lg" style={{ backgroundImage: paperTexture }}></div>
+      {/* Paper Texture Overlay (Subtle) */}
+      <div className="absolute inset-0 pointer-events-none opacity-30 rounded-sm mix-blend-multiply" style={{ backgroundImage: paperTexture }}></div>
 
       {/* Card Content */}
-      <div className="relative h-full flex flex-col p-8 border border-black/5">
-        <div className="w-8 h-8 rounded-full bg-brand-red text-white flex items-center justify-center font-display text-sm mb-6 shadow-sm">
+      <div className="relative h-full flex flex-col p-10 md:p-12 border border-black/5">
+        <div className="w-10 h-10 rounded-full bg-brand-red text-white flex items-center justify-center font-display text-lg mb-8 shadow-md">
           {index + 1}
         </div>
 
-        <h3 className="font-display text-3xl uppercase mb-6 leading-[0.9] text-brand-dark">
+        <h3 className="font-display text-4xl uppercase mb-6 leading-[0.85] text-brand-dark tracking-tight">
           {term.title}
         </h3>
 
-        <p className="font-serif text-lg leading-relaxed opacity-80">
+        <p className="font-serif text-xl leading-relaxed text-gray-800">
           {term.content}
         </p>
 
-        <div className="mt-auto border-t border-brand-dark/10 pt-4 flex justify-between items-center opacity-40">
-          <span className="text-xs uppercase tracking-widest font-sans">Initial here:</span>
-          <div className="w-12 h-6 border-b border-brand-dark/30"></div>
+        <div className="mt-auto border-t border-brand-dark/10 pt-6 flex justify-between items-center opacity-60">
+          <span className="text-xs uppercase tracking-[0.2em] font-sans font-medium text-brand-dark/60">Initial here:</span>
+          <div className="w-16 h-8 border-b border-brand-dark/40"></div>
         </div>
       </div>
     </motion.div>
