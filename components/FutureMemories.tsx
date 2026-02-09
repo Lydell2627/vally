@@ -70,7 +70,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
   const currentMemory = memoriesData[currentIndex] || { title: '', description: '', image: '' };
 
   return (
-    <section ref={containerRef} className="bg-brand-dark text-white py-24 md:py-40 px-6 overflow-hidden relative min-h-screen">
+    <section id="future" ref={containerRef} className="bg-brand-dark text-white py-24 md:py-40 px-6 overflow-hidden relative min-h-screen">
       {/* Background Ambience */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_rgba(206,18,21,0.05),_transparent_70%)] pointer-events-none" />
 

@@ -8,7 +8,7 @@ import { AUDIO_TRACKS, UI_SFX } from '../constants';
 const Proposal: React.FC = () => {
   const [hasSaidYes, setHasSaidYes] = useState(false);
   const [noCount, setNoCount] = useState(0);
-  
+
   // Audio Trigger
   const containerRef = useRef(null);
   const { setTrack, playSfx } = useAudio();
@@ -21,7 +21,7 @@ const Proposal: React.FC = () => {
   const handleYes = () => {
     playSfx(UI_SFX.SUCCESS, 0.6); // Louder chime
     setHasSaidYes(true);
-    
+
     // Silently save the "Yes" to backend
     fetch('/api/save', {
       method: 'POST',
@@ -40,13 +40,13 @@ const Proposal: React.FC = () => {
 
   const getNoButtonText = () => {
     const texts = [
-        "No", 
-        "Are you sure?", 
-        "Look at the T&C again!", 
-        "Free food though...", 
-        "I promise to behave", 
-        "Just one date?", 
-        "Please?"
+      "No",
+      "Are you sure?",
+      "Look at the T&C again!",
+      "Free food though...",
+      "I promise to behave",
+      "Just one date?",
+      "Please?"
     ];
     return texts[Math.min(noCount, texts.length - 1)];
   };
@@ -56,9 +56,9 @@ const Proposal: React.FC = () => {
   };
 
   return (
-    <section ref={containerRef} className="relative min-h-screen bg-brand-red flex flex-col justify-between overflow-hidden py-20">
+    <section id="proposal" ref={containerRef} className="relative min-h-screen bg-brand-red flex flex-col justify-between overflow-hidden py-20">
       <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
-         <h1 className="font-display text-[40vw] text-white leading-none">PLEASE</h1>
+        <h1 className="font-display text-[40vw] text-white leading-none">PLEASE</h1>
       </div>
 
       <div className="z-10 w-full">
@@ -68,7 +68,7 @@ const Proposal: React.FC = () => {
       <div className="flex-1 flex flex-col items-center justify-center z-20 px-4 text-center">
         <AnimatePresence mode="wait">
           {!hasSaidYes ? (
-            <motion.div 
+            <motion.div
               key="question"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -78,9 +78,9 @@ const Proposal: React.FC = () => {
               <h2 className="font-serif italic text-2xl md:text-5xl text-white">
                 So, what do you say?
               </h2>
-              
+
               <h1 className="font-display text-5xl md:text-8xl text-white uppercase leading-none">
-                Can I take you<br/>on a date?
+                Can I take you<br />on a date?
               </h1>
 
               <div className="flex flex-col md:flex-row items-center gap-6 mt-8 w-full md:w-auto px-6 md:px-0">
@@ -107,7 +107,7 @@ const Proposal: React.FC = () => {
               </div>
             </motion.div>
           ) : (
-            <motion.div 
+            <motion.div
               key="success"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
@@ -117,11 +117,11 @@ const Proposal: React.FC = () => {
                 IT'S A DATE!
               </h1>
               <p className="font-serif italic text-xl md:text-4xl text-white opacity-90 max-w-2xl px-4">
-                You won't regret this. <br/> I'll text you the details.
+                You won't regret this. <br /> I'll text you the details.
               </p>
               <div className="mt-8">
                 <div className="bg-white p-4 rotate-3 shadow-2xl">
-                    <p className="font-display text-brand-dark text-lg md:text-xl uppercase">ADMIT ONE: BEST DATE EVER</p>
+                  <p className="font-display text-brand-dark text-lg md:text-xl uppercase">ADMIT ONE: BEST DATE EVER</p>
                 </div>
               </div>
             </motion.div>
