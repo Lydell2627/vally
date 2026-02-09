@@ -45,7 +45,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
 
   // Slide Logic (Timed slideshow, no local audio)
   useEffect(() => {
-    if (mode === 'PLAYING') {
+    if (mode === 'PLAYING' && memoriesData.length > 0) {
       const SLIDE_DURATION = 4000; // 4 seconds per slide
       const TOTAL_REEL_TIME = memoriesData.length * SLIDE_DURATION;
 
@@ -65,6 +65,9 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
       };
     }
   }, [mode, memoriesData]);
+
+  // Safe access to current memory
+  const currentMemory = memoriesData[currentIndex] || { title: '', description: '', image: '' };
 
   return (
     <section ref={containerRef} className="bg-brand-dark text-white py-24 md:py-40 px-6 overflow-hidden relative min-h-screen">
@@ -217,9 +220,9 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 z-10" />
 
                       <img
-                        src={memoriesData[currentIndex].image || `https://picsum.photos/seed/${currentIndex + 55}/1920/1080`}
+                        src={currentMemory.image || `https://picsum.photos/seed/${currentIndex + 55}/1920/1080`}
                         className="w-full h-full object-cover opacity-80"
-                        alt={memoriesData[currentIndex].title}
+                        alt={currentMemory.title || 'Future Memory'}
                       />
                     </motion.div>
                   </motion.div>
@@ -237,10 +240,10 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
                     transition={{ duration: 1.2, delay: 0.3, ease: [0.19, 1, 0.22, 1] }}
                   >
                     <h2 className="font-display text-4xl md:text-8xl text-white uppercase mb-4 drop-shadow-2xl tracking-tight">
-                      {memoriesData[currentIndex].title}
+                      {currentMemory.title}
                     </h2>
                     <p className="font-serif italic text-lg md:text-3xl text-white/90 max-w-3xl mx-auto drop-shadow-lg leading-relaxed">
-                      {memoriesData[currentIndex].description}
+                      {currentMemory.description}
                     </p>
                   </motion.div>
                 </AnimatePresence>
