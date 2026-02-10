@@ -125,14 +125,14 @@ const Hero: React.FC<HeroProps> = ({ content }) => {
       {/* Corner Texts */}
       <div
         ref={leftTagRef}
-        className="absolute top-8 left-6 md:top-14 md:left-14 font-serif italic text-xl md:text-2xl z-30"
+        className="absolute top-12 left-8 md:top-14 md:left-14 font-serif italic text-2xl md:text-2xl z-30 opacity-90"
       >
         Hey,<br />listen.
       </div>
 
       <div
         ref={rightTagRef}
-        className="absolute top-8 right-6 md:top-14 md:right-14 font-display text-lg md:text-xl z-30 tracking-widest uppercase"
+        className="absolute top-12 right-8 md:top-14 md:right-14 font-display text-lg md:text-xl z-30 tracking-[0.2em] uppercase opacity-90"
       >
         {textData.subtitle}
       </div>
@@ -142,10 +142,10 @@ const Hero: React.FC<HeroProps> = ({ content }) => {
 
         <motion.div
           ref={introRef}
-          className="relative mb-8 md:mb-12"
+          className="relative mb-12 md:mb-16"
           style={{ y: yText, opacity }}
         >
-          <h3 className="font-serif italic text-2xl md:text-4xl tracking-wide leading-relaxed drop-shadow-sm max-w-[90%] mx-auto">
+          <h3 className="font-serif italic text-3xl md:text-4xl tracking-wide leading-relaxed drop-shadow-sm max-w-[85%] mx-auto">
             I know you're hesitant.<br />But hear me out.
           </h3>
         </motion.div>
@@ -160,7 +160,7 @@ const Hero: React.FC<HeroProps> = ({ content }) => {
               <span
                 key={i}
                 ref={el => { wordRefs.current[i] = el; }}
-                className="font-display text-[15vw] md:text-[12vw] uppercase text-white cursor-default select-none text-glow whitespace-nowrap inline-block leading-[0.8]"
+                className="font-display text-[18vw] md:text-[12vw] uppercase text-white cursor-default select-none text-glow whitespace-nowrap inline-block leading-[0.85]"
               >
                 {word}
               </span>
@@ -171,7 +171,7 @@ const Hero: React.FC<HeroProps> = ({ content }) => {
           <div className="relative z-10 -mt-[0.12em] md:-mt-[0.15em]">
             <span
               ref={el => { wordRefs.current[topWords.length] = el; }}
-              className="font-display text-[15vw] md:text-[12vw] uppercase stroke-text cursor-default select-none whitespace-nowrap inline-block tracking-[0.1em] leading-[0.8]"
+              className="font-display text-[18vw] md:text-[12vw] uppercase stroke-text cursor-default select-none whitespace-nowrap inline-block tracking-[0.08em] leading-[0.85]"
             >
               {textData.bottom}
             </span>
@@ -192,14 +192,14 @@ const Hero: React.FC<HeroProps> = ({ content }) => {
       {/* Scroll Indicator */}
       <div
         ref={scrollRef}
-        className="absolute bottom-12 md:bottom-16 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-3"
+        className="absolute bottom-16 md:bottom-16 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-4"
       >
-        <span className="font-display text-xs md:text-sm uppercase tracking-[0.3em] opacity-80">Begin</span>
+        <span className="font-display text-xs md:text-sm uppercase tracking-[0.4em] opacity-80">Begin</span>
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white w-6 h-6 md:w-8 md:h-8">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white w-7 h-7 md:w-8 md:h-8">
             <path d="M7 13l5 5 5-5M7 6l5 5 5-5" />
           </svg>
         </motion.div>
