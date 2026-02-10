@@ -84,11 +84,11 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-12 md:mb-24 text-center md:text-left flex flex-col md:flex-row justify-between items-end"
+          className="mb-12 md:mb-24 text-left flex flex-col md:flex-row justify-between items-start md:items-end"
         >
           <div>
-            <div className="flex flex-col md:flex-row items-end gap-6 mb-6">
-              <h2 className="font-display text-6xl md:text-9xl uppercase leading-[0.8]">
+            <div className="flex flex-col md:flex-row items-start md:items-end gap-6 mb-6">
+              <h2 className="font-display text-5xl md:text-9xl uppercase leading-[0.85] md:leading-[0.8]">
                 Future<br />
                 <span className="text-brand-red outline-text">Memories</span>
               </h2>
@@ -104,7 +104,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
             onClick={startExperience}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="mt-8 md:mt-0 group relative overflow-hidden rounded-full px-8 py-6 bg-brand-red text-white shadow-[0_0_40px_-10px_rgba(206,18,21,0.6)]"
+            className="mt-12 md:mt-0 self-end md:self-auto group relative overflow-hidden rounded-full px-8 py-6 bg-brand-red text-white shadow-[0_0_40px_-10px_rgba(206,18,21,0.6)]"
           >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out" />
             <div className="relative flex items-center gap-4">
