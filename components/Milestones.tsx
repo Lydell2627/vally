@@ -78,7 +78,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <div className="relative overflow-hidden rounded-sm shadow-2xl rotate-2 group-hover:rotate-0 transition-transform duration-500 max-h-[40vh] md:max-h-none">
+              <div className="relative overflow-hidden rounded-sm shadow-2xl rotate-2 group-hover:rotate-0 transition-transform duration-500 max-h-[60vh] md:max-h-[80vh]">
                 <div className="absolute inset-0 bg-brand-red/10 group-hover:bg-transparent transition-colors z-10 pointer-events-none" />
                 <img src={milestone.image} alt={milestone.title} className="w-full h-full object-cover" />
               </div>
@@ -123,7 +123,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
             </div>
 
             {/* Foreground Image - Moves faster upward */}
-            <div className="flex-1 h-[40vh] md:h-[60vh] w-full relative perspective-1000 order-1 md:order-2">
+            <div className="flex-1 h-[50vh] md:h-[80vh] w-full relative perspective-1000 order-1 md:order-2">
               <ParallaxLayer scrollYProgress={scrollYProgress} depth={1.5} className="z-20 pointer-events-auto">
                 <div onClick={onClick} className="w-full h-full shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] cursor-zoom-in group overflow-hidden border-4 border-white">
                   <img
