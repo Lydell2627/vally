@@ -41,6 +41,13 @@ export const milestone = defineType({
             options: { hotspot: true },
         }),
         defineField({
+            name: 'backgroundImage',
+            title: 'Background Image (Optional)',
+            type: 'image',
+            description: 'Use a different image for the blurred background? If empty, uses the primary image.',
+            options: { hotspot: true },
+        }),
+        defineField({
             name: 'images',
             title: 'Additional Photos (Gallery)',
             type: 'array',

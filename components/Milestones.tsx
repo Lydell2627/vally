@@ -65,7 +65,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
         <>
           <ParallaxLayer scrollYProgress={scrollYProgress} depth={-2} className="z-0">
             <div className="w-full h-full flex items-center justify-center opacity-10 md:opacity-25">
-              <img src={milestone.image} alt="Background" className="w-[120%] h-[120%] object-cover grayscale" />
+              <img src={milestone.backgroundImage || milestone.image} alt="Background" className="w-[120%] h-[120%] object-cover grayscale" />
             </div>
           </ParallaxLayer>
 
@@ -146,7 +146,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
         <div className="relative w-full h-full bg-brand-dark text-white">
           {/* Deep Background Image */}
           <ParallaxLayer scrollYProgress={scrollYProgress} depth={-1} className="z-0">
-            <img src={milestone.image} alt={milestone.title} className="w-full h-full object-cover opacity-60 md:opacity-40" />
+            <img src={milestone.backgroundImage || milestone.image} alt={milestone.title} className="w-full h-full object-cover opacity-60 md:opacity-40" />
             <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/50 to-transparent" />
           </ParallaxLayer>
 

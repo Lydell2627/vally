@@ -78,6 +78,7 @@ export default function Home() {
             milestones: data.milestones?.map((m: any) => ({
               ...m,
               image: resolveImage(m.image),
+              backgroundImage: resolveImage(m.backgroundImage),
               images: m.images?.map((img: any) => resolveImage(img)) || [],
             })),
             whyILikeYou: data.whyILikeYou?.map((r: any) => ({
