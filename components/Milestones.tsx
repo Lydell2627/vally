@@ -69,7 +69,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
             </div>
           </ParallaxLayer>
 
-          <div className="relative z-10 container mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-center h-full gap-8 md:gap-20">
+          <div className="relative z-10 container mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-start md:justify-center h-full pt-20 md:pt-0 gap-6 md:gap-20">
             <motion.div
               className="w-full md:w-1/2 cursor-pointer group order-2 md:order-1"
               onClick={onClick}
@@ -113,8 +113,8 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
             <div className="absolute right-0 top-1/4 w-[50vw] h-[50vw] bg-white rounded-full blur-[100px] opacity-60" />
           </ParallaxLayer>
 
-          <div className="relative z-10 h-full flex flex-col md:flex-row items-center justify-between px-6 md:px-24 py-12 md:py-0">
-            <div className="flex-1 text-center md:text-right md:pr-20 mb-8 md:mb-0 flex flex-col justify-center h-full order-2 md:order-1">
+          <div className="relative z-10 h-full flex flex-col md:flex-row items-center justify-center md:justify-between px-6 md:px-24 pt-20 pb-10 md:py-0 gap-8 md:gap-0">
+            <div className="flex-1 text-center md:text-right md:pr-20 flex flex-col justify-center order-2 md:order-1 w-full">
               <span className="font-serif italic text-2xl text-brand-red mb-2 block">{milestone.category}</span>
               <h2 className="font-display text-4xl md:text-8xl text-brand-dark uppercase leading-[0.9] mb-4 md:mb-6">{milestone.title}</h2>
               <p className="font-sans text-base md:text-lg text-gray-600 leading-relaxed max-w-md ml-auto mr-auto md:mr-0">
@@ -123,7 +123,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
             </div>
 
             {/* Foreground Image - Moves faster upward */}
-            <div className="flex-1 h-[50vh] md:h-[80vh] w-full relative perspective-1000 order-1 md:order-2">
+            <div className="flex-none h-[60vh] md:h-[80vh] w-full relative perspective-1000 order-1 md:order-2">
               <ParallaxLayer scrollYProgress={scrollYProgress} depth={1.5} className="z-20 pointer-events-auto">
                 <div onClick={onClick} className="w-full h-full shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] cursor-zoom-in group overflow-hidden border-4 border-white">
                   <img
