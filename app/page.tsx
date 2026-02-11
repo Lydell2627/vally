@@ -25,7 +25,7 @@ const resolveImage = (image: any) => {
   if (!image) return '';
   if (typeof image === 'string') return image;
   try {
-    return urlFor(image).url();
+    return (urlFor(image) as any).width(1920).quality(100).auto('format').url();
   } catch (e) {
     return '';
   }
