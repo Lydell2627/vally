@@ -233,11 +233,8 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
             >
               <div className="flex flex-col md:flex-row items-center md:items-end justify-center md:justify-between gap-2 md:gap-8 px-4">
                 <div className="text-center md:text-left">
-                  <span className="block font-serif italic text-brand-red text-lg md:text-xl mb-1">{currentMilestone.year} — {currentMilestone.category}</span>
-                  <h2 className="font-display text-3xl md:text-6xl text-white uppercase tracking-tight leading-none">{currentMilestone.title}</h2>
-                  <p className="font-sans text-white/80 text-sm md:text-base mt-2 max-w-md mx-auto md:mx-0 line-clamp-3 md:line-clamp-none">
-                    {currentMilestone.description}
-                  </p>
+                  <span className="block font-serif italic text-brand-red text-xl md:text-2xl mb-2 tracking-wide leading-relaxed">{currentMilestone.year} — {currentMilestone.category}</span>
+                  <h2 className="font-display text-4xl md:text-7xl text-white uppercase tracking-tight leading-none">{currentMilestone.title}</h2>
                 </div>
                 <div className="hidden md:block text-white/40 font-display text-xl tracking-widest">
                   {selectedIndex !== null ? (selectedIndex + 1).toString().padStart(2, '0') : '00'} / {milestones.length.toString().padStart(2, '0')}
