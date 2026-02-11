@@ -65,6 +65,20 @@ export const metrics = defineType({
             description: 'How many times she clicked "No" before finally clicking "Yes"',
             readOnly: true,
         }),
+        defineField({
+            name: 'reactionImages',
+            title: 'No-Click Reactions (Stickers)',
+            type: 'array',
+            description: 'Images that pop up when she clicks No (e.g. Crying cat, Sad hamster)',
+            of: [{ type: 'image' }]
+        }),
+        defineField({
+            name: 'reactionSounds',
+            title: 'No-Click Sounds',
+            type: 'array',
+            description: 'Sound effects to play when No is clicked',
+            of: [{ type: 'file', options: { accept: 'audio/*' } }]
+        }),
     ],
     preview: {
         select: {

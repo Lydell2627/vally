@@ -5,9 +5,25 @@ import Marquee from './Marquee';
 import { useAudio } from './AudioProvider';
 import { AUDIO_TRACKS, UI_SFX } from '../constants';
 
-const Proposal: React.FC = () => {
+interface Sticker {
+  id: number;
+  url: string;
+  x: number;
+  y: number;
+  rotation: number;
+}
+
+interface ProposalProps {
+  reactions?: {
+    reactionImages: string[];
+    reactionSounds: string[];
+  };
+}
+
+const Proposal: React.FC<ProposalProps> = ({ reactions }) => {
   const [hasSaidYes, setHasSaidYes] = useState(false);
   const [noCount, setNoCount] = useState(0);
+  const [stickers, setStickers] = useState<Sticker[]>([]);
 
   // Load persisted noCount from server on mount
   useEffect(() => {
@@ -55,7 +71,30 @@ const Proposal: React.FC = () => {
   };
 
   const handleNo = () => {
-    playSfx(UI_SFX.CLICK);
+    // Play sound (Random from CMS or default)
+    if (reactions?.reactionSounds?.length) {
+      const soundUrl = reactions.reactionSounds[Math.floor(Math.random() * reactions.reactionSounds.length)];
+      if (soundUrl) {
+        const audio = new Audio(soundUrl);
+        audio.play().catch(e => console.warn("Audio play failed", e));
+      }
+    } else {
+      playSfx(UI_SFX.CLICK);
+    }
+
+    // Add Sticker
+    if (reactions?.reactionImages?.length) {
+      const stickerUrl = reactions.reactionImages[Math.floor(Math.random() * reactions.reactionImages.length)];
+      const newSticker: Sticker = {
+        id: Date.now(),
+        url: stickerUrl,
+        x: Math.random() * 80 + 10, // 10% to 90%
+        y: Math.random() * 80 + 10,
+        rotation: Math.random() * 40 - 20 // -20 to 20 deg
+      };
+      setStickers(prev => [...prev, newSticker]);
+    }
+
     setNoCount(prev => prev + 1);
 
     // Persist the no-click to metrics
@@ -87,6 +126,22 @@ const Proposal: React.FC = () => {
     <section id="proposal" ref={containerRef} className="relative min-h-screen bg-brand-red flex flex-col justify-between overflow-hidden py-20">
       <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
         <h1 className="font-display text-[40vw] text-white leading-none">PLEASE</h1>
+      </div>
+
+      {/* Stickers Overlay */}
+      <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden">
+        <AnimatePresence>
+          {stickers.map(sticker => (
+            <motion.img
+              key={sticker.id}
+              initial={{ scale: 0, opacity: 0, rotate: 0 }}
+              animate={{ scale: 1, opacity: 1, rotate: sticker.rotation }}
+              src={sticker.url}
+              className="absolute w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-2xl"
+              style={{ left: `${sticker.x}%`, top: `${sticker.y}%` }}
+            />
+          ))}
+        </AnimatePresence>
       </div>
 
       <div className="z-10 w-full">

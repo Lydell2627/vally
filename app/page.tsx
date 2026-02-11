@@ -47,7 +47,8 @@ export default function Home() {
           "futureMemories": *[_type == "futureMemory"] | order(order asc),
           "places": *[_type == "place"] | order(order asc),
           "terms": *[_type == "term"] | order(order asc),
-          "audioTracks": *[_type == "audioTrack"]
+          "audioTracks": *[_type == "audioTrack"],
+          "metrics": *[_type == "metrics"][0] { reactionImages, reactionSounds }
         }`;
 
         const data = await client.fetch(query);
@@ -91,6 +92,10 @@ export default function Home() {
               ...t,
               content: t.content || t.description,
             })),
+            metrics: {
+              reactionImages: data.metrics?.reactionImages?.map((img: any) => resolveImage(img)) || [],
+              reactionSounds: data.metrics?.reactionSounds?.map((snd: any) => snd.asset ? fileUrlFor(snd.asset) : '') || [],
+            }
           };
           setCmsData(processed);
         }
@@ -142,7 +147,7 @@ export default function Home() {
                   <TermsAndConditions content={cmsData?.terms} />
                 </div>
 
-                <Proposal />
+                <Proposal reactions={cmsData?.metrics} />
               </div>
 
               <Footer />
