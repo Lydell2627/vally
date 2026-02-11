@@ -13,15 +13,26 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
   const isOpen = selectedIndex !== null;
   const currentMilestone = selectedIndex !== null ? milestones[selectedIndex] : null;
 
+  // Gallery State (for multiple images per milestone)
+  const [galleryIndex, setGalleryIndex] = useState(0);
+
+  // Build full image list for current milestone
+  const allImages = currentMilestone
+    ? [currentMilestone.image, ...(currentMilestone.images || [])].filter(Boolean)
+    : [];
+  const currentImage = allImages[galleryIndex] || currentMilestone?.image || '';
+  const hasGallery = allImages.length > 1;
+
   // Zoom State
   const [scale, setScale] = useState(1);
   const pinchRef = useRef<{ dist: number; startScale: number } | null>(null);
   const lastTapRef = useRef<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Reset zoom when changing slides
+  // Reset zoom and gallery index when changing slides
   useEffect(() => {
     setScale(1);
+    setGalleryIndex(0);
   }, [selectedIndex]);
 
   useEffect(() => {
@@ -100,7 +111,7 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
         setScale(2.5);
       }
     } else {
-        lastTapRef.current = now;
+      lastTapRef.current = now;
     }
   };
 
@@ -150,7 +161,7 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
           </button>
 
           {/* Content Container */}
-          <div 
+          <div
             className="relative w-full h-full flex flex-col items-center justify-center max-w-7xl mx-auto"
             onClick={(e) => e.stopPropagation()}
           >
@@ -189,13 +200,29 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
                 style={{ touchAction: 'none' }}
               >
                 <img
-                  src={currentMilestone.image}
+                  src={currentImage}
                   alt={currentMilestone.title}
                   draggable={false}
                   className="max-w-full max-h-full object-contain shadow-2xl rounded-sm select-none"
                 />
               </motion.div>
             </motion.div>
+
+            {/* Gallery Thumbnails (if multiple images) */}
+            {hasGallery && (
+              <div className="flex items-center justify-center gap-2 mt-4">
+                {allImages.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={(e) => { e.stopPropagation(); setGalleryIndex(i); }}
+                    className={`w-12 h-12 md:w-16 md:h-16 rounded-sm overflow-hidden border-2 transition-all ${i === galleryIndex ? 'border-brand-red scale-110' : 'border-white/20 opacity-50 hover:opacity-80'
+                      }`}
+                  >
+                    <img src={img} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
 
             <motion.div
               key={`text-${currentMilestone.id}`}
@@ -215,9 +242,9 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
               </div>
             </motion.div>
           </div>
-          
+
           {/* Mobile Swipe Hint */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 1 }}

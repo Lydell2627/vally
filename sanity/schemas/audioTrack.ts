@@ -2,8 +2,9 @@ import { defineType, defineField } from 'sanity';
 
 export const audioTrack = defineType({
     name: 'audioTrack',
-    title: 'Audio Track',
+    title: '🎵 Audio Track',
     type: 'document',
+    icon: () => '🎵',
     fields: [
         defineField({
             name: 'section',

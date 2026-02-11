@@ -57,9 +57,9 @@ export default function Home() {
           const trackOverrides: any = {};
           data.audioTracks?.forEach((track: any) => {
             const url = track.file ? fileUrlFor(track.file) : track.url;
-            if (url) {
-              trackOverrides[track.trackId] = {
-                id: track.trackId,
+            if (url && track.section) {
+              trackOverrides[track.section] = {
+                id: track.section,
                 url: url,
                 title: track.title,
                 vibe: track.vibe
@@ -69,13 +69,27 @@ export default function Home() {
           setCustomTracks(Object.keys(trackOverrides).length > 0 ? { ...AUDIO_TRACKS, ...trackOverrides } : null);
 
           const processed = {
-            hero: data.hero,
+            hero: data.hero ? {
+              top: data.hero.top || data.hero.title,
+              bottom: data.hero.bottom,
+              subtitle: data.hero.subtitle,
+            } : null,
             narrative: data.narrative,
-            milestones: data.milestones?.map((m: any) => ({ ...m, image: resolveImage(m.image) })),
-            whyILikeYou: data.whyILikeYou,
+            milestones: data.milestones?.map((m: any) => ({
+              ...m,
+              image: resolveImage(m.image),
+              images: m.images?.map((img: any) => resolveImage(img)) || [],
+            })),
+            whyILikeYou: data.whyILikeYou?.map((r: any) => ({
+              ...r,
+              description: r.text || r.description,
+            })),
             futureMemories: data.futureMemories?.map((fm: any) => ({ ...fm, image: resolveImage(fm.image) })),
             places: data.places?.map((p: any) => ({ ...p, image: resolveImage(p.image) })),
-            terms: data.terms,
+            terms: data.terms?.map((t: any) => ({
+              ...t,
+              content: t.content || t.description,
+            })),
           };
           setCmsData(processed);
         }

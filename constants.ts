@@ -22,6 +22,7 @@ export interface Milestone {
   year: string;
   description: string;
   image: string;
+  images?: string[];
 }
 
 export const MILESTONES: Milestone[] = [
