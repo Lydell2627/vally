@@ -162,7 +162,7 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
 
           {/* Content Container */}
           <div
-            className="relative w-full h-full flex flex-col items-center justify-center max-w-7xl mx-auto"
+            className="relative w-full h-full flex flex-col md:flex-row items-center justify-center max-w-7xl mx-auto pt-12 pb-24 md:py-0"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 
@@ -175,7 +175,7 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
-              className="relative w-full h-[60vh] md:h-[80vh] flex items-center justify-center"
+              className="relative w-full flex-1 md:h-[80vh] flex items-center justify-center min-h-0"
               drag={isZoomed ? false : "x"}
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.7}
@@ -229,12 +229,15 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="absolute bottom-4 md:bottom-0 left-0 w-full text-center md:text-left pointer-events-none"
+              className="w-full text-center md:text-left md:absolute md:bottom-0 md:left-0 pointer-events-none mt-6 md:mt-0 z-20"
             >
               <div className="flex flex-col md:flex-row items-center md:items-end justify-center md:justify-between gap-2 md:gap-8 px-4">
                 <div className="text-center md:text-left">
-                  <span className="block font-serif italic text-brand-red text-xl mb-1">{currentMilestone.year} — {currentMilestone.category}</span>
-                  <h2 className="font-display text-4xl md:text-6xl text-white uppercase tracking-tight">{currentMilestone.title}</h2>
+                  <span className="block font-serif italic text-brand-red text-lg md:text-xl mb-1">{currentMilestone.year} — {currentMilestone.category}</span>
+                  <h2 className="font-display text-3xl md:text-6xl text-white uppercase tracking-tight leading-none">{currentMilestone.title}</h2>
+                  <p className="font-sans text-white/80 text-sm md:text-base mt-2 max-w-md mx-auto md:mx-0 line-clamp-3 md:line-clamp-none">
+                    {currentMilestone.description}
+                  </p>
                 </div>
                 <div className="hidden md:block text-white/40 font-display text-xl tracking-widest">
                   {selectedIndex !== null ? (selectedIndex + 1).toString().padStart(2, '0') : '00'} / {milestones.length.toString().padStart(2, '0')}
