@@ -51,6 +51,10 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
   // If we have dynamic content, we cycle through these 3 layouts
   const layoutType = index % 3;
 
+  // Dynamic Grayscale Logic: 100% B&W at edges, Color in middle
+  // [Start, FadeIn point, FadeOut point, End]
+  const imageFilter = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], ["grayscale(100%)", "grayscale(0%)", "grayscale(0%)", "grayscale(100%)"]);
+
   return (
     <div
       ref={containerRef}
@@ -80,7 +84,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
             >
               <div className="relative overflow-hidden rounded-sm shadow-2xl rotate-2 group-hover:rotate-0 transition-transform duration-500 w-full h-[50vh] md:h-auto md:max-h-[80vh] flex-shrink-0 md:flex-shrink">
                 <div className="absolute inset-0 bg-brand-red/10 group-hover:bg-transparent transition-colors z-10 pointer-events-none" />
-                <img src={milestone.image} alt={milestone.title} className="w-full h-full object-cover" />
+                <motion.img style={{ filter: imageFilter }} src={milestone.image} alt={milestone.title} className="w-full h-full object-cover" />
               </div>
             </motion.div>
 
@@ -126,10 +130,11 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
             <div className="flex-1 w-full relative perspective-1000 order-1 md:order-2 min-h-0">
               <ParallaxLayer scrollYProgress={scrollYProgress} depth={1.5} className="z-20 pointer-events-auto">
                 <div onClick={onClick} className="w-full h-full shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] cursor-zoom-in group overflow-hidden border-4 border-white">
-                  <img
+                  <motion.img
+                    style={{ filter: imageFilter }}
                     src={milestone.image}
                     alt={milestone.title}
-                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 grayscale group-hover:grayscale-0"
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                   />
                 </div>
               </ParallaxLayer>
@@ -146,7 +151,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
         <div className="relative w-full h-full bg-brand-dark text-white">
           {/* Deep Background Image */}
           <ParallaxLayer scrollYProgress={scrollYProgress} depth={-1} className="z-0">
-            <img src={milestone.backgroundImage || milestone.image} alt={milestone.title} className="w-full h-full object-cover opacity-60 md:opacity-40" />
+            <motion.img style={{ filter: imageFilter }} src={milestone.backgroundImage || milestone.image} alt={milestone.title} className="w-full h-full object-cover opacity-60 md:opacity-40" />
             <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/50 to-transparent" />
           </ParallaxLayer>
 
