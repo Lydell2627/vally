@@ -125,6 +125,17 @@ const TermsAndConditions: React.FC<TermsProps> = ({ content }) => {
           data: { name: signature }
         })
       });
+
+      // Track signature in metrics (triggers email notification)
+      fetch('/api/metrics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'signature',
+          data: { name: signature }
+        })
+      }).catch(() => { });
+
       setIsSigned(true);
       playSfx(UI_SFX.SIGNATURE);
     } catch (err) {

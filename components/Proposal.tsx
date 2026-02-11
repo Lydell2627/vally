@@ -9,6 +9,17 @@ const Proposal: React.FC = () => {
   const [hasSaidYes, setHasSaidYes] = useState(false);
   const [noCount, setNoCount] = useState(0);
 
+  // Load persisted noCount from server on mount
+  useEffect(() => {
+    fetch('/api/metrics')
+      .then(res => res.json())
+      .then(data => {
+        if (data.noCount) setNoCount(data.noCount);
+        if (data.hasSaidYes) setHasSaidYes(true);
+      })
+      .catch(() => { });
+  }, []);
+
   // Audio Trigger
   const containerRef = useRef(null);
   const { setTrack, playSfx } = useAudio();
@@ -22,7 +33,17 @@ const Proposal: React.FC = () => {
     playSfx(UI_SFX.SUCCESS, 0.6); // Louder chime
     setHasSaidYes(true);
 
-    // Silently save the "Yes" to backend
+    // Track yes-click in metrics (triggers email notification)
+    fetch('/api/metrics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'yes-click',
+        data: { noCount: noCount }
+      })
+    }).catch(e => console.error("Failed to save yes-click", e));
+
+    // Also save to submissions for the record
     fetch('/api/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -36,6 +57,13 @@ const Proposal: React.FC = () => {
   const handleNo = () => {
     playSfx(UI_SFX.CLICK);
     setNoCount(prev => prev + 1);
+
+    // Persist the no-click to metrics
+    fetch('/api/metrics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'no-click' })
+    }).catch(() => { });
   };
 
   const getNoButtonText = () => {

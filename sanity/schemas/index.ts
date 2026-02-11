@@ -7,6 +7,7 @@ import { place } from './place';
 import { term } from './term';
 import { audioTrack } from './audioTrack';
 import { submission } from './submission';
+import { metrics } from './metrics';
 
 export const schemaTypes = [
     hero,
@@ -18,4 +19,5 @@ export const schemaTypes = [
     term,
     audioTrack,
     submission,
+    metrics,
 ];
