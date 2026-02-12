@@ -35,43 +35,66 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
     setGalleryIndex(0);
   }, [selectedIndex]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen) return;
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft') handlePrev();
-      if (e.key === 'ArrowRight') handleNext();
-    };
+  // --- Photo Navigation (within same memory) ---
+  const handlePrevPhoto = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (!hasGallery) return;
+    setGalleryIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+  };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, selectedIndex]);
+  const handleNextPhoto = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (!hasGallery) return;
+    setGalleryIndex((prev) => (prev + 1) % allImages.length);
+  };
 
-  const handlePrev = (e?: React.MouseEvent) => {
+  // --- Memory Navigation (between milestones) ---
+  const handlePrevMemory = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (selectedIndex === null) return;
     const newIndex = (selectedIndex - 1 + milestones.length) % milestones.length;
     onChange(newIndex);
   };
 
-  const handleNext = (e?: React.MouseEvent) => {
+  const handleNextMemory = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (selectedIndex === null) return;
     const newIndex = (selectedIndex + 1) % milestones.length;
     onChange(newIndex);
   };
 
+  // Keyboard: arrows = photos, shift+arrows = memories
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isOpen) return;
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft') {
+        if (hasGallery) handlePrevPhoto();
+        else handlePrevMemory();
+      }
+      if (e.key === 'ArrowRight') {
+        if (hasGallery) handleNextPhoto();
+        else handleNextMemory();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, selectedIndex, galleryIndex, hasGallery, allImages.length]);
+
+  // Swipe: swipe = photos (if gallery), otherwise memories
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const SWIPE_THRESHOLD = 50;
     if (info.offset.x > SWIPE_THRESHOLD) {
-      handlePrev();
+      if (hasGallery) handlePrevPhoto();
+      else handlePrevMemory();
     } else if (info.offset.x < -SWIPE_THRESHOLD) {
-      handleNext();
+      if (hasGallery) handleNextPhoto();
+      else handleNextMemory();
     }
   };
 
   // --- Zoom Logic ---
-
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       const dist = Math.hypot(
@@ -89,7 +112,6 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
         e.touches[0].clientY - e.touches[1].clientY
       );
       const ratio = dist / pinchRef.current.dist;
-      // Limit zoom between 1x and 4x
       const newScale = Math.min(Math.max(1, pinchRef.current.startScale * ratio), 4);
       setScale(newScale);
     }
@@ -97,7 +119,7 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
 
   const handleTouchEnd = () => {
     pinchRef.current = null;
-    if (scale < 1.1) setScale(1); // Snap back if barely zoomed
+    if (scale < 1.1) setScale(1);
   };
 
   const handleDoubleTap = (e: React.MouseEvent | React.TouchEvent) => {
@@ -125,67 +147,64 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-dark/95 backdrop-blur-md p-4 md:p-10 group"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-dark/95 backdrop-blur-md group"
           onClick={onClose}
         >
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 z-50 text-white/50 hover:text-white transition-colors"
+            className="absolute top-4 right-4 md:top-6 md:right-6 z-50 text-white/50 hover:text-white transition-colors"
           >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
           </button>
 
-          {/* Navigation Buttons (Desktop) */}
-          <button
-            onClick={handlePrev}
-            className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-50 text-white hover:text-brand-red transition-all p-4 hidden md:block opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0 duration-500 ease-out"
-            aria-label="Previous image"
-          >
-            <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-          </button>
-
-          <button
-            onClick={handleNext}
-            className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-50 text-white hover:text-brand-red transition-all p-4 hidden md:block opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0 duration-500 ease-out"
-            aria-label="Next image"
-          >
-            <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </button>
-
-          {/* Content Container */}
+          {/* ===== MAIN CONTENT AREA ===== */}
           <div
-            className="relative w-full h-full flex flex-col md:flex-row items-center justify-center max-w-7xl mx-auto pt-12 pb-24 md:py-0"
+            className="relative w-full h-full flex flex-col items-center justify-center px-4 md:px-16 pt-14 pb-28 md:pb-20"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 
-                Swipe/Drag Container 
-                - Handles Swipe Navigation when NOT zoomed.
-            */}
+            {/* Photo Navigation Arrows (cycle within gallery) */}
+            {hasGallery && (
+              <>
+                <button
+                  onClick={handlePrevPhoto}
+                  className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover:opacity-100 md:transform md:-translate-x-4 md:group-hover:translate-x-0 duration-300"
+                  aria-label="Previous photo"
+                >
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                </button>
+
+                <button
+                  onClick={handleNextPhoto}
+                  className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover:opacity-100 md:transform md:translate-x-4 md:group-hover:translate-x-0 duration-300"
+                  aria-label="Next photo"
+                >
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+              </>
+            )}
+
+            {/* Image Area */}
             <motion.div
-              key={currentMilestone.id}
+              key={`${currentMilestone.id}-${galleryIndex}`}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="relative w-full flex-1 md:h-[80vh] flex items-center justify-center min-h-0"
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="relative w-full flex-1 flex items-center justify-center min-h-0"
               drag={isZoomed ? false : "x"}
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.7}
               onDragEnd={handleDragEnd}
               ref={containerRef}
             >
-              {/* 
-                  Zoom/Pan Container 
-                  - Handles Pinch Zoom & Pan when zoomed.
-              */}
               <motion.div
                 className={`w-full h-full flex items-center justify-center ${isZoomed ? 'cursor-grab active:cursor-grabbing' : 'cursor-zoom-in'}`}
                 animate={{ scale: scale }}
@@ -208,49 +227,70 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
               </motion.div>
             </motion.div>
 
-            {/* Gallery Thumbnails (if multiple images) */}
+            {/* Gallery Dots (photo indicators) */}
             {hasGallery && (
-              <div className="flex items-center justify-center gap-2 mt-4">
-                {allImages.map((img, i) => (
+              <div className="flex items-center gap-2 mt-3">
+                {allImages.map((_, i) => (
                   <button
                     key={i}
                     onClick={(e) => { e.stopPropagation(); setGalleryIndex(i); }}
-                    className={`w-12 h-12 md:w-16 md:h-16 rounded-sm overflow-hidden border-2 transition-all ${i === galleryIndex ? 'border-brand-red scale-110' : 'border-white/20 opacity-50 hover:opacity-80'
+                    className={`rounded-full transition-all ${i === galleryIndex
+                      ? 'w-3 h-3 bg-brand-red'
+                      : 'w-2 h-2 bg-white/30 hover:bg-white/60'
                       }`}
-                  >
-                    <img src={img} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
-                  </button>
+                  />
                 ))}
               </div>
             )}
 
-            <motion.div
-              key={`text-${currentMilestone.id}`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="w-full text-center md:text-left md:absolute md:bottom-0 md:left-0 pointer-events-none mt-6 md:mt-0 z-20"
-            >
-              <div className="flex flex-col md:flex-row items-center md:items-end justify-center md:justify-between gap-2 md:gap-8 px-4">
-                <div className="text-center md:text-left">
-                  <span className="block font-serif italic text-brand-red text-xl md:text-2xl mb-2 tracking-wide leading-relaxed">{currentMilestone.year} — {currentMilestone.category}</span>
-                  <h2 className="font-display text-4xl md:text-7xl text-white uppercase tracking-tight leading-none">{currentMilestone.title}</h2>
-                </div>
-                <div className="hidden md:block text-white/40 font-display text-xl tracking-widest">
-                  {selectedIndex !== null ? (selectedIndex + 1).toString().padStart(2, '0') : '00'} / {milestones.length.toString().padStart(2, '0')}
-                </div>
+            {/* Bottom Info Bar */}
+            <div className="w-full mt-4 md:mt-6 pointer-events-none">
+              <div className="flex flex-col items-center text-center gap-1">
+                <span className="font-serif italic text-brand-red text-base md:text-lg tracking-wide">
+                  {currentMilestone.year} — {currentMilestone.category}
+                </span>
+                <h2 className="font-display text-2xl md:text-5xl text-white uppercase tracking-tight leading-none">
+                  {currentMilestone.title}
+                </h2>
               </div>
-            </motion.div>
+            </div>
+
+            {/* Memory Navigation Bar (separate from photo arrows) */}
+            <div className="absolute bottom-4 md:bottom-6 left-0 right-0 flex items-center justify-center gap-6 z-50 pointer-events-auto">
+              <button
+                onClick={handlePrevMemory}
+                className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-xs uppercase tracking-widest font-sans"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+                <span className="hidden md:inline">Prev Memory</span>
+              </button>
+
+              <span className="text-white/30 font-display text-sm tracking-widest">
+                {selectedIndex !== null ? (selectedIndex + 1).toString().padStart(2, '0') : '00'} / {milestones.length.toString().padStart(2, '0')}
+              </span>
+
+              <button
+                onClick={handleNextMemory}
+                className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-xs uppercase tracking-widest font-sans"
+              >
+                <span className="hidden md:inline">Next Memory</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* Mobile Swipe Hint */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 1 }}
-            className="absolute bottom-10 left-1/2 -translate-x-1/2 md:hidden text-white/30 text-xs uppercase tracking-widest pointer-events-none whitespace-nowrap"
+            transition={{ delay: 1.5, duration: 1 }}
+            className="absolute bottom-16 left-1/2 -translate-x-1/2 md:hidden text-white/20 text-[10px] uppercase tracking-widest pointer-events-none whitespace-nowrap"
           >
-            Swipe to navigate • Double tap to zoom
+            {hasGallery ? 'Swipe for photos • Double tap to zoom' : 'Double tap to zoom'}
           </motion.div>
         </motion.div>
       )}
