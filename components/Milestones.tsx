@@ -177,19 +177,21 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
       {layoutType === 2 && (
         <div className="relative w-full h-full bg-brand-dark text-white flex flex-col md:flex-row">
           {/* Photo side — full height, no crop */}
-          <div className="relative w-full md:w-1/2 h-[60%] md:h-full order-1 md:order-2 cursor-pointer group" onClick={onClick}>
+          <div className="relative w-full md:w-1/2 h-[60%] md:h-full order-1 md:order-2 cursor-pointer group flex items-center justify-center p-4 md:p-8" onClick={onClick}>
             {/* Blurred fill behind portrait photo */}
             <img
               src={milestone.backgroundImage || milestone.image}
               alt=""
               className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-40"
             />
-            {/* Full portrait photo — no cropping */}
-            <img
-              src={milestone.image}
-              alt={milestone.title}
-              className="relative w-full h-full object-contain z-10"
-            />
+            {/* Framed portrait photo */}
+            <div className="relative z-10 w-full h-full border-4 md:border-[6px] border-white/80 shadow-2xl overflow-hidden">
+              <img
+                src={milestone.image}
+                alt={milestone.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
             {/* Mobile: bottom gradient for text readability */}
             <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-brand-dark to-transparent md:hidden z-20" />
           </div>
@@ -203,15 +205,15 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
               transition={{ duration: 0.6 }}
               className="max-w-lg"
             >
-              <span className="font-serif italic text-lg md:text-2xl text-brand-red mb-1 block">({milestone.year})</span>
-              <h2 className="font-display text-3xl md:text-7xl uppercase leading-[0.85] mb-3 md:mb-5">
+              <span className="font-serif italic text-xl md:text-3xl text-brand-red mb-2 block">({milestone.year})</span>
+              <h2 className="font-display text-4xl md:text-8xl uppercase leading-[0.85] mb-4 md:mb-6">
                 {milestone.category}
               </h2>
-              <h3 className="font-display text-xl md:text-3xl uppercase mb-2 md:mb-3 text-white/90">{milestone.title}</h3>
-              <p className="font-sans text-sm md:text-base text-gray-400 leading-relaxed mb-3 md:mb-6">
+              <h3 className="font-display text-2xl md:text-4xl uppercase mb-2 md:mb-4 text-white/90">{milestone.title}</h3>
+              <p className="font-sans text-base md:text-lg text-gray-400 leading-relaxed mb-4 md:mb-8">
                 {milestone.description}
               </p>
-              <div className="text-xs uppercase tracking-widest text-brand-red cursor-pointer hover:text-white transition-colors" onClick={onClick}>
+              <div className="text-sm uppercase tracking-widest text-brand-red cursor-pointer hover:text-white transition-colors" onClick={onClick}>
                 Tap to view memory →
               </div>
             </motion.div>
