@@ -164,8 +164,8 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
         <div className="relative w-full h-full bg-brand-dark text-white">
           {/* Deep Background Image */}
           <ParallaxLayer scrollYProgress={scrollYProgress} depth={-1} className="z-0">
-            <motion.img style={{ filter: imageFilter }} src={milestone.backgroundImage || milestone.image} alt={milestone.title} className="w-full h-full object-cover opacity-60 md:opacity-40" />
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/50 to-transparent" />
+            <motion.img style={{ filter: imageFilter }} src={milestone.backgroundImage || milestone.image} alt={milestone.title} className="w-full h-full object-cover opacity-80 md:opacity-70" />
+            <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/20 to-transparent" />
           </ParallaxLayer>
 
           <div className="relative z-10 h-full flex flex-col items-center justify-end md:justify-center pb-20 md:pb-0 px-6 text-center">
