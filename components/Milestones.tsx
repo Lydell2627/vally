@@ -112,9 +112,9 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
       */}
       {layoutType === 1 && (
         <div className="relative w-full h-full bg-[#f0f0f0]">
-          {/* Background image layer (blurred, behind everything) */}
+          {/* Background image layer (blurred, behind everything) — hidden on mobile */}
           {milestone.backgroundImage && (
-            <ParallaxLayer scrollYProgress={scrollYProgress} depth={-0.5} className="z-0">
+            <ParallaxLayer scrollYProgress={scrollYProgress} depth={-0.5} className="z-0 hidden md:block">
               <motion.img
                 style={{ filter: imageFilter }}
                 src={milestone.backgroundImage}
@@ -130,9 +130,9 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
             </ParallaxLayer>
           )}
 
-          <div className="relative z-10 h-full flex flex-col md:flex-row items-center justify-start md:justify-between px-6 md:px-24 pt-24 pb-24 md:py-0 gap-8 md:gap-12">
+          <div className="relative z-10 h-full flex flex-col md:flex-row items-center justify-start md:justify-between px-4 md:px-24 pt-16 pb-8 md:py-0 gap-4 md:gap-12">
             {/* Text */}
-            <div className="md:w-1/2 text-center md:text-right flex flex-col justify-center order-2 md:order-1 w-full z-20 bg-brand-light/80 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none p-4 md:p-0 rounded-xl md:rounded-none">
+            <div className="md:w-1/2 text-center md:text-right flex flex-col justify-center order-2 md:order-1 w-full z-20 bg-brand-light/70 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none p-3 md:p-0 rounded-xl md:rounded-none">
               <span className="font-serif italic text-2xl text-brand-red mb-2 block">{milestone.category}</span>
               <h2 className="font-display text-4xl md:text-8xl text-brand-dark uppercase leading-[0.9] mb-4 md:mb-6">{milestone.title}</h2>
               <p className="font-sans text-base md:text-lg text-gray-600 leading-relaxed max-w-md ml-auto mr-auto md:mr-0">
@@ -142,7 +142,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
 
             {/* Foreground Image */}
             <div
-              className="w-full md:w-1/2 h-[50vh] md:h-[80vh] relative order-1 md:order-2 cursor-zoom-in group overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] border-4 border-white"
+              className="w-full md:w-1/2 h-[55vh] md:h-[80vh] relative order-1 md:order-2 cursor-zoom-in group overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] border-4 border-white flex-shrink-0"
               onClick={onClick}
             >
               <motion.img
@@ -213,13 +213,14 @@ const Milestones: React.FC<MilestonesProps> = ({ content }) => {
     <section id="memories" ref={containerRef} className="relative w-full bg-brand-light">
       <div className="relative flex flex-col w-full">
         {milestonesData.map((milestone, index) => (
-          <MilestoneCard
-            key={milestone.id || index}
-            milestone={milestone}
-            index={index}
-            total={milestonesData.length}
-            onClick={() => setSelectedIndex(index)}
-          />
+          <div key={milestone.id || index} className="min-h-[120vh] md:min-h-screen relative">
+            <MilestoneCard
+              milestone={milestone}
+              index={index}
+              total={milestonesData.length}
+              onClick={() => setSelectedIndex(index)}
+            />
+          </div>
         ))}
       </div>
 
