@@ -202,15 +202,15 @@ const Places: React.FC<PlacesProps> = ({ content }) => {
 
       </div>
 
-      {/* Suggestion Button */}
+      {/* Suggestion Button — compact on mobile */}
       <button
         onClick={handleOpenModal}
-        className="absolute bottom-8 right-8 z-[70] group flex items-center gap-3 px-6 py-3 rounded-full bg-brand-red/90 text-white backdrop-blur-md hover:bg-white hover:text-brand-red transition-all duration-300 shadow-xl"
+        className="absolute bottom-20 md:bottom-8 right-4 md:right-8 z-[70] group flex items-center gap-2 px-3 py-3 md:px-5 md:py-3 rounded-full bg-brand-red/90 text-white backdrop-blur-md hover:bg-white hover:text-brand-red transition-all duration-300 shadow-xl"
       >
-        <span className="font-display text-sm uppercase tracking-widest">Suggest a Spot</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="group-hover:translate-x-1 transition-transform">
-          <path d="M5 12h14M12 5l7 7-7 7" />
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <path d="M12 5v14M5 12h14" />
         </svg>
+        <span className="hidden md:inline font-display text-xs uppercase tracking-widest">Suggest a Spot</span>
       </button>
 
       {/* --- MODAL FOR DREAM SPOT --- */}

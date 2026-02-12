@@ -33,7 +33,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode, initialTracks?
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<Track>(tracks.HERO);
-  
+
   const audioA = useRef<HTMLAudioElement | null>(null);
   const audioB = useRef<HTMLAudioElement | null>(null);
   const activeAudio = useRef<'A' | 'B'>('A');
@@ -42,7 +42,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode, initialTracks?
     // Initialize audio elements on mount to avoid SSR issues
     audioA.current = new Audio();
     audioB.current = new Audio();
-    
+
     audioA.current.loop = true;
     audioB.current.loop = true;
     audioA.current.volume = 0;
@@ -56,6 +56,31 @@ export const AudioProvider: React.FC<{ children: React.ReactNode, initialTracks?
       audioB.current?.pause();
     };
   }, [tracks.HERO.url]);
+
+  // Auto-start music on first user interaction (browser requires a gesture)
+  useEffect(() => {
+    const startOnInteraction = () => {
+      const a = audioA.current;
+      if (a && !isPlaying) {
+        a.volume = 0;
+        a.play().then(() => {
+          setIsPlaying(true);
+          fade(a, 1, 2500);
+        }).catch(() => { });
+      }
+      // Remove listeners after first trigger
+      document.removeEventListener('touchstart', startOnInteraction);
+      document.removeEventListener('click', startOnInteraction);
+    };
+
+    document.addEventListener('touchstart', startOnInteraction, { once: true });
+    document.addEventListener('click', startOnInteraction, { once: true });
+
+    return () => {
+      document.removeEventListener('touchstart', startOnInteraction);
+      document.removeEventListener('click', startOnInteraction);
+    };
+  }, []);
 
   const fade = (audio: HTMLAudioElement, targetVolume: number, duration: number) => {
     const step = 0.05;
@@ -72,7 +97,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode, initialTracks?
       let newVol = audio.volume + volStep;
       if (volStep > 0 && newVol >= targetVolume) newVol = targetVolume;
       if (volStep < 0 && newVol <= targetVolume) newVol = targetVolume;
-      
+
       audio.volume = Math.max(0, Math.min(1, newVol));
 
       if (newVol === targetVolume) {
@@ -87,15 +112,15 @@ export const AudioProvider: React.FC<{ children: React.ReactNode, initialTracks?
     // Resolve track if ID was passed (useful for CMS dynamic lookups)
     let newTrack: Track;
     if (typeof trackOrId === 'string') {
-       // Look for a key in our tracks object that matches the ID
-       const trackKey = Object.keys(tracks).find(k => tracks[k].id === trackOrId);
-       newTrack = trackKey ? tracks[trackKey] : (trackOrId as any); // fallback to ID as object if not found
+      // Look for a key in our tracks object that matches the ID
+      const trackKey = Object.keys(tracks).find(k => tracks[k].id === trackOrId);
+      newTrack = trackKey ? tracks[trackKey] : (trackOrId as any); // fallback to ID as object if not found
     } else {
-       newTrack = trackOrId;
+      newTrack = trackOrId;
     }
 
     if (!newTrack || !newTrack.url || newTrack.id === currentTrack.id) return;
-    
+
     setCurrentTrack(newTrack);
 
     const a = audioA.current;
@@ -111,12 +136,12 @@ export const AudioProvider: React.FC<{ children: React.ReactNode, initialTracks?
     // Crossfade Logic
     const fadeOutAudio = activeAudio.current === 'A' ? a : b;
     const fadeInAudio = activeAudio.current === 'A' ? b : a;
-    
+
     fadeInAudio.src = newTrack.url;
     fadeInAudio.volume = 0;
     fadeInAudio.play().catch(e => console.warn("Audio play blocked", e));
 
-    fade(fadeInAudio, 1, 2500); 
+    fade(fadeInAudio, 1, 2500);
     fade(fadeOutAudio, 0, 2500);
 
     activeAudio.current = activeAudio.current === 'A' ? 'B' : 'A';
@@ -141,7 +166,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode, initialTracks?
     const sfx = new Audio(url);
     sfx.volume = volume;
     sfx.play().catch(() => {
-        // SFX might be blocked if no interaction yet, ignore
+      // SFX might be blocked if no interaction yet, ignore
     });
   };
 
