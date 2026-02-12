@@ -28,6 +28,8 @@ body::-webkit-scrollbar {
 html {
   scrollbar-width: none;
   -ms-overflow-style: none;
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
 }
 html::-webkit-scrollbar {
   display: none;

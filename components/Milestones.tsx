@@ -213,7 +213,7 @@ const Milestones: React.FC<MilestonesProps> = ({ content }) => {
     <section id="memories" ref={containerRef} className="relative w-full bg-brand-light">
       <div className="relative flex flex-col w-full">
         {milestonesData.map((milestone, index) => (
-          <div key={milestone.id || index} className="min-h-[120vh] md:min-h-screen relative">
+          <div key={milestone.id || index} className="min-h-screen relative snap-start snap-always">
             <MilestoneCard
               milestone={milestone}
               index={index}
