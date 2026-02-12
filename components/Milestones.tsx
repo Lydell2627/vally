@@ -83,7 +83,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
       ref={containerRef}
       // MOBILE: relative positioning, natural flow, 100dvh for address bar
       // DESKTOP: sticky stacking with fixed h-screen
-      className="relative md:sticky md:top-0 min-h-[100dvh] md:h-screen w-full overflow-hidden flex flex-col justify-center bg-brand-light border-b border-brand-dark/5"
+      className="h-[100dvh] md:sticky md:top-0 md:h-screen w-full overflow-hidden flex flex-col justify-center bg-brand-light border-b border-brand-dark/5"
       style={{ zIndex: index + 1, touchAction: 'pan-y' }}
     >
       {/* === LAYOUT 1: Background Image + Foreground Content === */}
