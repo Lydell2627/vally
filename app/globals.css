@@ -29,9 +29,15 @@ body::-webkit-scrollbar {
 html {
   scrollbar-width: none;
   -ms-overflow-style: none;
-  scroll-snap-type: y proximity;
-  scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Premium scroll effects only on desktop — mobile gets pure native touch */
+@media (min-width: 768px) {
+  html {
+    scroll-snap-type: y proximity;
+    scroll-behavior: smooth;
+  }
 }
 
 html::-webkit-scrollbar {

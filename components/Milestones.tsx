@@ -5,27 +5,40 @@ import { motion, useScroll, useTransform, MotionValue, useInView } from 'framer-
 import Lightbox from './Lightbox';
 import { useAudio } from './AudioProvider';
 
-// --- Reusable Depth Layer Components ---
+// --- Detect mobile once (SSR-safe) ---
+const useIsMobile = () => {
+  return useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 768;
+  }, []);
+};
+
+// --- Parallax Layer (Desktop only) ---
 
 interface LayerProps {
   children: React.ReactNode;
   className?: string;
-  depth?: number; // 0 = base, 1 = fore (fast), -1 = back (slow)
+  depth?: number;
   scrollYProgress: MotionValue<number>;
 }
 
 const ParallaxLayer: React.FC<LayerProps> = ({ children, className = "", depth = 0, scrollYProgress }) => {
-  // Detect mobile once on mount — no parallax on small screens for performance
-  const isMobile = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return window.innerWidth < 768;
-  }, []);
+  const isMobile = useIsMobile();
 
-  // On mobile, depth is effectively 0 — transforms still run but output nothing
+  // Mobile: no transforms, just a static wrapper
   const effectiveDepth = isMobile ? 0 : depth;
   const yRange = effectiveDepth * 100;
   const y = useTransform(scrollYProgress, [0, 1], [0, -yRange]);
   const scale = effectiveDepth < 0 ? useTransform(scrollYProgress, [0, 1], [1, 1.1]) : 1;
+
+  // On mobile, skip motion.div entirely for zero overhead
+  if (isMobile) {
+    return (
+      <div className={`absolute inset-0 w-full h-full pointer-events-none ${className}`}>
+        {children}
+      </div>
+    );
+  }
 
   return (
     <motion.div style={{ y, scale }} className={`absolute inset-0 w-full h-full pointer-events-none ${className}`}>
@@ -34,7 +47,7 @@ const ParallaxLayer: React.FC<LayerProps> = ({ children, className = "", depth =
   );
 };
 
-// --- Milestone Card Component ---
+// --- Milestone Card ---
 
 interface MilestoneCardProps {
   milestone: Milestone;
@@ -45,63 +58,73 @@ interface MilestoneCardProps {
 
 const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick, total }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"]
   });
 
-  // Unique layout configuration based on index to mimic "Groups"
-  // If we have dynamic content, we cycle through these 3 layouts
   const layoutType = index % 3;
 
-  // Dynamic Grayscale Logic: 100% B&W at edges, Color in middle
-  // [Start, FadeIn point, FadeOut point, End]
-  const imageFilter = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], ["grayscale(100%)", "grayscale(0%)", "grayscale(0%)", "grayscale(100%)"]);
+  // Grayscale effect — lightweight CSS filter, runs on both mobile & desktop
+  const imageFilter = useTransform(
+    scrollYProgress,
+    [0, 0.3, 0.7, 1],
+    ["grayscale(100%)", "grayscale(0%)", "grayscale(0%)", "grayscale(100%)"]
+  );
+
+  // On mobile, skip the grayscale effect too for max performance
+  const mobileFilter = undefined;
+  const activeFilter = isMobile ? mobileFilter : imageFilter;
 
   return (
     <div
       ref={containerRef}
-      className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-center bg-brand-light border-b border-brand-dark/5"
-      style={{ zIndex: index + 1 }} // Stacking order
+      // MOBILE: relative positioning, natural flow, 100dvh for address bar
+      // DESKTOP: sticky stacking with fixed h-screen
+      className="relative md:sticky md:top-0 min-h-[100dvh] md:h-screen w-full overflow-hidden flex flex-col justify-center bg-brand-light border-b border-brand-dark/5"
+      style={{ zIndex: index + 1, touchAction: 'pan-y' }}
     >
-      {/* 
-         --- GROUP TYPE 1: The "Back" Layer Image (First Memory) --- 
-         Image sits in background, Text floats on top.
-      */}
+      {/* === LAYOUT 1: Background Image + Foreground Content === */}
       {layoutType === 0 && (
         <>
+          {/* Background (desktop: parallax, mobile: static) */}
           <ParallaxLayer scrollYProgress={scrollYProgress} depth={-2} className="z-0">
             <div className="w-full h-full flex items-center justify-center opacity-10 md:opacity-25">
-              <img src={milestone.backgroundImage || milestone.image} alt="Background" className="w-[120%] h-[120%] object-cover grayscale" />
+              <img src={milestone.backgroundImage || milestone.image} alt="" className="w-[120%] h-[120%] object-cover grayscale" />
             </div>
           </ParallaxLayer>
 
-          <div className="relative z-10 container mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-start md:justify-center h-full pt-20 pb-24 md:py-0 gap-6 md:gap-20">
+          <div className="relative z-10 container mx-auto px-5 md:px-12 flex flex-col md:flex-row items-center justify-center h-full py-8 md:py-0 gap-5 md:gap-20">
+            {/* Image */}
             <motion.div
-              className="w-full md:w-1/2 cursor-pointer group order-2 md:order-1"
+              className="w-full md:w-1/2 cursor-pointer group order-1 md:order-1"
               onClick={onClick}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.6 }}
             >
-              <div className="relative overflow-hidden rounded-sm shadow-2xl rotate-2 group-hover:rotate-0 transition-transform duration-500 w-full h-[50vh] md:h-auto md:max-h-[80vh] flex-shrink-0 md:flex-shrink">
+              <div className="relative overflow-hidden rounded-sm shadow-2xl md:rotate-2 md:group-hover:rotate-0 transition-transform duration-500 w-full h-[45vh] md:h-auto md:max-h-[80vh]">
                 <div className="absolute inset-0 bg-brand-red/10 group-hover:bg-transparent transition-colors z-10 pointer-events-none" />
-                <motion.img style={{ filter: imageFilter }} src={milestone.image} alt={milestone.title} className="w-full h-full object-cover" />
+                <motion.img style={{ filter: activeFilter }} src={milestone.image} alt={milestone.title} className="w-full h-full object-cover" />
               </div>
             </motion.div>
 
+            {/* Text */}
             <motion.div
-              className="w-full md:w-1/2 text-center md:text-left order-1 md:order-2"
-              initial={{ opacity: 0, y: 50 }}
+              className="w-full md:w-1/2 text-center md:text-left order-2 md:order-2"
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
             >
-              <span className="font-serif italic text-2xl md:text-3xl text-brand-red mb-2 block">({milestone.year})</span>
-              <h2 className="font-display text-5xl md:text-8xl text-brand-dark uppercase leading-[0.9] mb-4 md:mb-6">
+              <span className="font-serif italic text-xl md:text-3xl text-brand-red mb-1 block">({milestone.year})</span>
+              <h2 className="font-display text-4xl md:text-8xl text-brand-dark uppercase leading-[0.9] mb-3 md:mb-6">
                 {milestone.title}
               </h2>
-              <p className="font-sans text-base md:text-lg text-gray-700 leading-relaxed max-w-md mx-auto md:mx-0">
+              <p className="font-sans text-sm md:text-lg text-gray-700 leading-relaxed max-w-md mx-auto md:mx-0">
                 {milestone.description}
               </p>
             </motion.div>
@@ -109,47 +132,38 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
         </>
       )}
 
-      {/* 
-         --- GROUP TYPE 2: The "Fore" Layer (Second Memory) --- 
-         Image floats "closer" (Fore), Text is Base.
-      */}
+      {/* === LAYOUT 2: Image + Text Side by Side === */}
       {layoutType === 1 && (
         <div className="relative w-full h-full bg-[#f0f0f0]">
-          {/* Background image layer (blurred, behind everything) — hidden on mobile */}
+          {/* Background (desktop only) */}
           {milestone.backgroundImage && (
             <ParallaxLayer scrollYProgress={scrollYProgress} depth={-0.5} className="z-0 hidden md:block">
-              <motion.img
-                style={{ filter: imageFilter }}
-                src={milestone.backgroundImage}
-                alt="Background"
-                className="w-full h-full object-cover opacity-20 blur-sm"
-              />
+              <motion.img style={{ filter: activeFilter }} src={milestone.backgroundImage} alt="" className="w-full h-full object-cover opacity-20 blur-sm" />
             </ParallaxLayer>
           )}
-          {/* Abstract shape in Back layer (fallback if no bg image) */}
           {!milestone.backgroundImage && (
-            <ParallaxLayer scrollYProgress={scrollYProgress} depth={-0.5} className="z-0">
+            <ParallaxLayer scrollYProgress={scrollYProgress} depth={-0.5} className="z-0 hidden md:block">
               <div className="absolute right-0 top-1/4 w-[50vw] h-[50vw] bg-white rounded-full blur-[100px] opacity-60" />
             </ParallaxLayer>
           )}
 
-          <div className="relative z-10 h-full flex flex-col md:flex-row items-center justify-start md:justify-between px-4 md:px-24 pt-16 pb-8 md:py-0 gap-4 md:gap-12">
+          <div className="relative z-10 h-full flex flex-col md:flex-row items-center justify-center px-5 md:px-24 py-8 md:py-0 gap-5 md:gap-12">
             {/* Text */}
-            <div className="md:w-1/2 text-center md:text-right flex flex-col justify-center order-2 md:order-1 w-full z-20 bg-brand-light/70 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none p-3 md:p-0 rounded-xl md:rounded-none">
-              <span className="font-serif italic text-2xl text-brand-red mb-2 block">{milestone.category}</span>
-              <h2 className="font-display text-4xl md:text-8xl text-brand-dark uppercase leading-[0.9] mb-4 md:mb-6">{milestone.title}</h2>
-              <p className="font-sans text-base md:text-lg text-gray-600 leading-relaxed max-w-md ml-auto mr-auto md:mr-0">
+            <div className="md:w-1/2 text-center md:text-right flex flex-col justify-center order-2 md:order-1 w-full z-20">
+              <span className="font-serif italic text-xl md:text-2xl text-brand-red mb-1 block">{milestone.category}</span>
+              <h2 className="font-display text-4xl md:text-8xl text-brand-dark uppercase leading-[0.9] mb-3 md:mb-6">{milestone.title}</h2>
+              <p className="font-sans text-sm md:text-lg text-gray-600 leading-relaxed max-w-md ml-auto mr-auto md:mr-0">
                 {milestone.description}
               </p>
             </div>
 
-            {/* Foreground Image */}
+            {/* Image */}
             <div
-              className="w-full md:w-1/2 h-[55vh] md:h-[80vh] relative order-1 md:order-2 cursor-zoom-in group overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] border-4 border-white flex-shrink-0"
+              className="w-full md:w-1/2 h-[45vh] md:h-[80vh] relative order-1 md:order-2 cursor-pointer group overflow-hidden shadow-2xl border-4 border-white"
               onClick={onClick}
             >
               <motion.img
-                style={{ filter: imageFilter }}
+                style={{ filter: activeFilter }}
                 src={milestone.image}
                 alt={milestone.title}
                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
@@ -159,34 +173,39 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
         </div>
       )}
 
-      {/* 
-         --- GROUP TYPE 3: The "Deep" Layer (Last Memory) --- 
-         Full screen immersive background.
-      */}
+      {/* === LAYOUT 3: Full-Screen Immersive === */}
       {layoutType === 2 && (
         <div className="relative w-full h-full bg-brand-dark text-white">
-          {/* Deep Background Image */}
+          {/* Full background image */}
           <ParallaxLayer scrollYProgress={scrollYProgress} depth={-1} className="z-0">
-            <motion.img style={{ filter: imageFilter }} src={milestone.backgroundImage || milestone.image} alt={milestone.title} className="w-full h-full object-cover opacity-80 md:opacity-70" />
+            <img
+              src={milestone.backgroundImage || milestone.image}
+              alt={milestone.title}
+              className="w-full h-full object-cover opacity-80 md:opacity-70"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/20 to-transparent" />
           </ParallaxLayer>
 
-          <div className="relative z-10 h-full flex flex-col items-center justify-end md:justify-center pb-20 md:pb-0 px-6 text-center">
+          <div className="relative z-10 h-full flex flex-col items-center justify-end md:justify-center pb-16 md:pb-0 px-5 text-center">
             <motion.div
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
             >
-              <span className="font-serif italic text-2xl md:text-3xl text-brand-red mb-4 block">({milestone.year})</span>
-              <h2 className="font-display text-5xl md:text-[10rem] uppercase leading-[0.85] mb-6 md:mb-8 mix-blend-overlay">
+              <span className="font-serif italic text-xl md:text-3xl text-brand-red mb-3 block">({milestone.year})</span>
+              <h2 className="font-display text-4xl md:text-[10rem] uppercase leading-[0.85] mb-5 md:mb-8 md:mix-blend-overlay">
                 {milestone.category}
               </h2>
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 md:p-12 max-w-2xl mx-auto rounded-sm hover:bg-white/10 transition-colors cursor-pointer" onClick={onClick}>
-                <h3 className="font-display text-2xl md:text-5xl uppercase mb-3 md:mb-4">{milestone.title}</h3>
-                <p className="font-sans text-base md:text-lg text-gray-300 leading-relaxed">
+              <div
+                className="bg-white/5 backdrop-blur-md border border-white/10 p-5 md:p-12 max-w-2xl mx-auto rounded-sm hover:bg-white/10 transition-colors cursor-pointer"
+                onClick={onClick}
+              >
+                <h3 className="font-display text-2xl md:text-5xl uppercase mb-2 md:mb-4">{milestone.title}</h3>
+                <p className="font-sans text-sm md:text-lg text-gray-300 leading-relaxed">
                   {milestone.description}
                 </p>
-                <div className="mt-4 md:mt-6 text-xs uppercase tracking-widest text-brand-red">Tap to view memory</div>
+                <div className="mt-3 md:mt-6 text-xs uppercase tracking-widest text-brand-red">Tap to view memory</div>
               </div>
             </motion.div>
           </div>
@@ -195,6 +214,8 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
     </div>
   );
 };
+
+// --- Main Milestones Section ---
 
 interface MilestonesProps {
   content?: Milestone[];
@@ -216,7 +237,9 @@ const Milestones: React.FC<MilestonesProps> = ({ content }) => {
     <section id="memories" ref={containerRef} className="relative w-full bg-brand-light">
       <div className="relative flex flex-col w-full">
         {milestonesData.map((milestone, index) => (
-          <div key={milestone.id || index} className="min-h-screen relative snap-start snap-always">
+          // MOBILE: no snap classes, clean flow
+          // DESKTOP: snap-start for premium magnetic feel
+          <div key={milestone.id || index} className="relative md:snap-start md:snap-always">
             <MilestoneCard
               milestone={milestone}
               index={index}
