@@ -82,7 +82,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <div className="relative overflow-hidden rounded-sm shadow-2xl rotate-2 group-hover:rotate-0 transition-transform duration-500 w-full h-[50vh] md:h-[80vh] flex-shrink-0 md:flex-shrink">
+              <div className="relative overflow-hidden rounded-sm shadow-2xl rotate-2 group-hover:rotate-0 transition-transform duration-500 w-full h-[50vh] md:h-auto md:max-h-[80vh] flex-shrink-0 md:flex-shrink">
                 <div className="absolute inset-0 bg-brand-red/10 group-hover:bg-transparent transition-colors z-10 pointer-events-none" />
                 <motion.img style={{ filter: imageFilter }} src={milestone.image} alt={milestone.title} className="w-full h-full object-cover" />
               </div>
@@ -112,13 +112,27 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
       */}
       {layoutType === 1 && (
         <div className="relative w-full h-full bg-[#f0f0f0]">
-          {/* Abstract shape in Back layer */}
-          <ParallaxLayer scrollYProgress={scrollYProgress} depth={-0.5} className="z-0">
-            <div className="absolute right-0 top-1/4 w-[50vw] h-[50vw] bg-white rounded-full blur-[100px] opacity-60" />
-          </ParallaxLayer>
+          {/* Background image layer (blurred, behind everything) */}
+          {milestone.backgroundImage && (
+            <ParallaxLayer scrollYProgress={scrollYProgress} depth={-0.5} className="z-0">
+              <motion.img
+                style={{ filter: imageFilter }}
+                src={milestone.backgroundImage}
+                alt="Background"
+                className="w-full h-full object-cover opacity-20 blur-sm"
+              />
+            </ParallaxLayer>
+          )}
+          {/* Abstract shape in Back layer (fallback if no bg image) */}
+          {!milestone.backgroundImage && (
+            <ParallaxLayer scrollYProgress={scrollYProgress} depth={-0.5} className="z-0">
+              <div className="absolute right-0 top-1/4 w-[50vw] h-[50vw] bg-white rounded-full blur-[100px] opacity-60" />
+            </ParallaxLayer>
+          )}
 
-          <div className="relative z-10 h-full flex flex-col md:flex-row items-center justify-start md:justify-between px-6 md:px-24 pt-24 pb-24 md:py-0 gap-8 md:gap-0">
-            <div className="flex-shrink-0 text-center md:text-left md:pr-20 flex flex-col justify-center order-2 md:order-2 w-full z-20 bg-brand-light/80 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none p-4 md:p-0 rounded-xl md:rounded-none">
+          <div className="relative z-10 h-full flex flex-col md:flex-row items-center justify-start md:justify-between px-6 md:px-24 pt-24 pb-24 md:py-0 gap-8 md:gap-12">
+            {/* Text */}
+            <div className="md:w-1/2 text-center md:text-right flex flex-col justify-center order-2 md:order-1 w-full z-20 bg-brand-light/80 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none p-4 md:p-0 rounded-xl md:rounded-none">
               <span className="font-serif italic text-2xl text-brand-red mb-2 block">{milestone.category}</span>
               <h2 className="font-display text-4xl md:text-8xl text-brand-dark uppercase leading-[0.9] mb-4 md:mb-6">{milestone.title}</h2>
               <p className="font-sans text-base md:text-lg text-gray-600 leading-relaxed max-w-md ml-auto mr-auto md:mr-0">
@@ -126,18 +140,17 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
               </p>
             </div>
 
-            {/* Foreground Image - Moves faster upward */}
-            <div className="flex-1 w-full relative perspective-1000 order-1 md:order-1 min-h-0 md:h-[80vh]">
-              <ParallaxLayer scrollYProgress={scrollYProgress} depth={1.5} className="z-20 pointer-events-auto">
-                <div onClick={onClick} className="w-full h-full shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] cursor-zoom-in group overflow-hidden border-4 border-white">
-                  <motion.img
-                    style={{ filter: imageFilter }}
-                    src={milestone.image}
-                    alt={milestone.title}
-                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                  />
-                </div>
-              </ParallaxLayer>
+            {/* Foreground Image */}
+            <div
+              className="w-full md:w-1/2 h-[50vh] md:h-[80vh] relative order-1 md:order-2 cursor-zoom-in group overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] border-4 border-white"
+              onClick={onClick}
+            >
+              <motion.img
+                style={{ filter: imageFilter }}
+                src={milestone.image}
+                alt={milestone.title}
+                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+              />
             </div>
           </div>
         </div>
