@@ -176,12 +176,19 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
       {/* === LAYOUT 3: Full-Screen Immersive === */}
       {layoutType === 2 && (
         <div className="relative w-full h-full bg-brand-dark text-white">
-          {/* Full background image */}
+          {/* Full background image — blurred backdrop + full photo */}
           <ParallaxLayer scrollYProgress={scrollYProgress} depth={-1} className="z-0">
+            {/* Blurred fill behind the photo to cover letterbox gaps */}
+            <img
+              src={milestone.backgroundImage || milestone.image}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-60"
+            />
+            {/* Full photo — no cropping */}
             <img
               src={milestone.backgroundImage || milestone.image}
               alt={milestone.title}
-              className="w-full h-full object-cover opacity-80 md:opacity-70"
+              className="relative w-full h-full object-contain"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/20 to-transparent" />
           </ParallaxLayer>
