@@ -1,5 +1,5 @@
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { MILESTONES, AUDIO_TRACKS, Milestone } from '../constants';
 import { motion, useScroll, useTransform, MotionValue, useInView } from 'framer-motion';
 import Lightbox from './Lightbox';
@@ -15,14 +15,17 @@ interface LayerProps {
 }
 
 const ParallaxLayer: React.FC<LayerProps> = ({ children, className = "", depth = 0, scrollYProgress }) => {
-  // Parallax Logic:
-  // We map the scroll progress (0 to 1) to a Y translation.
-  // Positive depth (Fore) moves UP faster (creating "closer" feel).
-  // Negative depth (Back) moves DOWN/slower (creating "distance" feel).
+  // Detect mobile once on mount — no parallax on small screens for performance
+  const isMobile = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 768;
+  }, []);
 
-  const yRange = depth * 100; // Adjust intensity
+  // On mobile, depth is effectively 0 — transforms still run but output nothing
+  const effectiveDepth = isMobile ? 0 : depth;
+  const yRange = effectiveDepth * 100;
   const y = useTransform(scrollYProgress, [0, 1], [0, -yRange]);
-  const scale = depth < 0 ? useTransform(scrollYProgress, [0, 1], [1, 1.1]) : 1;
+  const scale = effectiveDepth < 0 ? useTransform(scrollYProgress, [0, 1], [1, 1.1]) : 1;
 
   return (
     <motion.div style={{ y, scale }} className={`absolute inset-0 w-full h-full pointer-events-none ${className}`}>
@@ -58,7 +61,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
   return (
     <div
       ref={containerRef}
-      className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-center bg-brand-light border-b border-brand-dark/5 will-change-transform"
+      className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-center bg-brand-light border-b border-brand-dark/5"
       style={{ zIndex: index + 1 }} // Stacking order
     >
       {/* 

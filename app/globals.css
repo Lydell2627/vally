@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -15,8 +14,10 @@ body {
   color: var(--foreground);
   overflow-x: hidden;
   /* Hide scrollbar for IE, Edge and Firefox */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -29,8 +30,9 @@ html {
   scrollbar-width: none;
   -ms-overflow-style: none;
   scroll-snap-type: y proximity;
-  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
+
 html::-webkit-scrollbar {
   display: none;
 }
@@ -50,8 +52,8 @@ html::-webkit-scrollbar {
 /* GLOW EFFECT FOR SOLID TEXT */
 .text-glow {
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.8),
-               0 0 20px rgba(255, 255, 255, 0.4),
-               0 0 30px rgba(255, 255, 255, 0.2);
+    0 0 20px rgba(255, 255, 255, 0.4),
+    0 0 30px rgba(255, 255, 255, 0.2);
 }
 
 /* ENHANCED STROKE TEXT WITH GLOW */
@@ -77,6 +79,13 @@ html::-webkit-scrollbar {
 }
 
 @keyframes drift {
-  0%, 100% { background-position: 0% 50% }
-  50% { background-position: 100% 50% }
+
+  0%,
+  100% {
+    background-position: 0% 50%
+  }
+
+  50% {
+    background-position: 100% 50%
+  }
 }
