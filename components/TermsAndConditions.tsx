@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform, MotionValue, AnimatePresence, useInVie
 import { useAudio } from './AudioProvider';
 
 const RaysBackground = () => (
-  <div className="absolute top-0 left-0 right-0 mx-auto h-full w-[350px] md:w-[600px] pointer-events-none z-0 overflow-visible">
+  <div className="absolute top-0 left-0 right-0 mx-auto h-full w-[350px] md:w-[600px] pointer-events-none z-0 overflow-visible hidden md:block">
     <div className="absolute block w-full h-full transform -skew-x-[20deg]">
       <div className="absolute top-0 left-1/2 overflow-visible w-full h-full -translate-x-1/2">
         <svg className="w-[395px] h-[3118px] opacity-60 mix-blend-screen" viewBox="0 0 395 3118">
@@ -55,13 +55,13 @@ const Card: React.FC<{ term: any, index: number, total: number, progress: Motion
         opacity,
         zIndex: total - index
       }}
-      className="w-[85vw] max-w-[400px] aspect-[4/5] bg-[#fdfaf5] text-brand-dark rounded-sm shadow-2xl origin-bottom"
+      className="w-[85vw] max-w-[400px] aspect-[4/5] bg-[#fdfaf5] text-brand-dark rounded-sm shadow-2xl origin-bottom will-change-transform"
     >
       {/* Paper Texture Overlay (Subtle) */}
-      <div className="absolute inset-0 pointer-events-none opacity-30 rounded-sm mix-blend-multiply" style={{ backgroundImage: paperTexture }}></div>
+      <div className="absolute inset-0 pointer-events-none opacity-20 rounded-sm hidden md:block" style={{ backgroundImage: paperTexture }}></div>
 
       {/* Card Content */}
-      <div className="relative h-full flex flex-col p-10 md:p-12 border border-black/5">
+      <div className="relative h-full flex flex-col p-8 md:p-12 border border-black/5">
         <div className="w-10 h-10 rounded-full bg-brand-red text-white flex items-center justify-center font-display text-lg mb-8 shadow-md">
           {index + 1}
         </div>
@@ -70,14 +70,11 @@ const Card: React.FC<{ term: any, index: number, total: number, progress: Motion
           {term.title}
         </h3>
 
-        <p className="font-serif text-xl leading-relaxed text-gray-800">
+        <p className="font-sans text-base md:text-lg leading-relaxed text-gray-700">
           {term.content}
         </p>
 
-        <div className="mt-auto border-t border-brand-dark/10 pt-6 flex justify-between items-center opacity-60">
-          <span className="text-xs uppercase tracking-[0.2em] font-sans font-medium text-brand-dark/60">Initial here:</span>
-          <div className="w-16 h-8 border-b border-brand-dark/40"></div>
-        </div>
+
       </div>
     </motion.div>
   )
