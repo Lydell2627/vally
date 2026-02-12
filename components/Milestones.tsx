@@ -127,7 +127,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
             </div>
 
             {/* Foreground Image - Moves faster upward */}
-            <div className="flex-1 w-full relative perspective-1000 order-1 md:order-2 min-h-0">
+            <div className="flex-1 w-full relative perspective-1000 order-1 md:order-2 min-h-0 md:h-[80vh]">
               <ParallaxLayer scrollYProgress={scrollYProgress} depth={1.5} className="z-20 pointer-events-auto">
                 <div onClick={onClick} className="w-full h-full shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] cursor-zoom-in group overflow-hidden border-4 border-white">
                   <motion.img
