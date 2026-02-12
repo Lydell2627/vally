@@ -176,43 +176,39 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
       {/* === LAYOUT 3: Full-Screen Immersive === */}
       {layoutType === 2 && (
         <div className="relative w-full h-full bg-brand-dark text-white">
-          {/* Full background image — blurred backdrop + full photo */}
+          {/* Full-screen background photo */}
           <ParallaxLayer scrollYProgress={scrollYProgress} depth={-1} className="z-0">
-            {/* Blurred fill behind the photo to cover letterbox gaps */}
-            <img
-              src={milestone.backgroundImage || milestone.image}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-60"
-            />
-            {/* Full photo — no cropping */}
             <img
               src={milestone.backgroundImage || milestone.image}
               alt={milestone.title}
-              className="relative w-full h-full object-contain"
+              className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/20 to-transparent" />
+            {/* Bottom gradient for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/40 via-40% to-transparent" />
           </ParallaxLayer>
 
-          <div className="relative z-10 h-full flex flex-col items-center justify-end md:justify-center pb-16 md:pb-0 px-5 text-center">
+          {/* All text pushed to the very bottom */}
+          <div className="relative z-10 h-full flex flex-col justify-end pb-8 md:pb-12 px-5 md:px-12">
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
+              className="max-w-2xl"
             >
-              <span className="font-serif italic text-xl md:text-3xl text-brand-red mb-3 block">({milestone.year})</span>
-              <h2 className="font-display text-4xl md:text-[10rem] uppercase leading-[0.85] mb-5 md:mb-8 md:mix-blend-overlay">
+              <span className="font-serif italic text-lg md:text-2xl text-brand-red mb-1 block">({milestone.year})</span>
+              <h2 className="font-display text-3xl md:text-7xl uppercase leading-[0.85] mb-3 md:mb-4">
                 {milestone.category}
               </h2>
               <div
-                className="bg-white/5 backdrop-blur-md border border-white/10 p-5 md:p-12 max-w-2xl mx-auto rounded-sm hover:bg-white/10 transition-colors cursor-pointer"
+                className="bg-white/5 backdrop-blur-md border border-white/10 p-4 md:p-8 rounded-sm hover:bg-white/10 transition-colors cursor-pointer inline-block"
                 onClick={onClick}
               >
-                <h3 className="font-display text-2xl md:text-5xl uppercase mb-2 md:mb-4">{milestone.title}</h3>
-                <p className="font-sans text-sm md:text-lg text-gray-300 leading-relaxed">
+                <h3 className="font-display text-xl md:text-3xl uppercase mb-1 md:mb-2">{milestone.title}</h3>
+                <p className="font-sans text-sm md:text-base text-gray-300 leading-relaxed">
                   {milestone.description}
                 </p>
-                <div className="mt-3 md:mt-6 text-xs uppercase tracking-widest text-brand-red">Tap to view memory</div>
+                <div className="mt-2 md:mt-4 text-xs uppercase tracking-widest text-brand-red">Tap to view memory</div>
               </div>
             </motion.div>
           </div>
