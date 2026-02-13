@@ -54,8 +54,13 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
 
   // Initialize background Howl
   useEffect(() => {
+    let isMounted = true;
+    let activeHowl: Howl | null = null;
+
     // Check if we should be playing (global state + user intent)
     const shouldPlay = isPlayingRef.current && !userPausedRef.current;
+
+    console.log("AudioProvider: Initializing bg track:", bgUrl);
 
     // Create new Howl
     const bgHowl = new Howl({
@@ -64,7 +69,43 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
       loop: true,
       volume: 0, // Start silent for fade-in
       preload: true,
+      onloaderror: (id, err) => {
+        if (!isMounted) return;
+        console.error("AudioProvider: Load Error:", err, "ID:", id, "URL:", bgUrl);
+
+        // Fallback to default if custom URL fails and it's not already the default
+        if (bgUrl !== DEFAULT_BG_URL) {
+          console.log("AudioProvider: Falling back to default track due to error.");
+          const fallbackHowl = new Howl({
+            src: [DEFAULT_BG_URL],
+            html5: true,
+            loop: true,
+            volume: 0,
+            preload: true,
+          });
+
+          // Update our cleanup target to the fallback
+          activeHowl = fallbackHowl;
+          bgHowlRef.current = fallbackHowl;
+
+          if (shouldPlay) {
+            fallbackHowl.play();
+            fallbackHowl.fade(0, bgVolume, 1000);
+          }
+        }
+      },
+      onplayerror: (id, err) => {
+        if (!isMounted) return;
+        console.error("AudioProvider: Play Error:", err, "ID:", id);
+        // Reset state so user can try clicking again if it was an interaction issue
+        bgHowl.once('unlock', () => {
+          if (shouldPlay && isMounted) bgHowl.play();
+        });
+      }
     });
+
+    // Valid start
+    activeHowl = bgHowl;
 
     // If we were playing, swap seamlessly
     if (shouldPlay) {
@@ -83,8 +124,11 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
     }
 
     return () => {
-      bgHowl.stop();
-      bgHowl.unload();
+      isMounted = false;
+      if (activeHowl) {
+        activeHowl.stop();
+        activeHowl.unload();
+      }
     };
   }, [bgUrl, bgVolume]);
 
