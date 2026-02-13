@@ -11,11 +11,11 @@ interface PlacesProps {
 
 // Fallback images if data is missing
 const FALLBACK_IMAGES = [
-  "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1200&auto=format&fit=crop", // Switzerland vibe
-  "https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1200&auto=format&fit=crop", // Countryside
-  "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?q=80&w=1200&auto=format&fit=crop", // Cinque Terre
-  "https://images.unsplash.com/photo-1506929562872-bb421503ef21?q=80&w=1200&auto=format&fit=crop", // Beach
-  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop"  // Ocean
+  "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=3840&auto=format&fit=crop", // Switzerland vibe
+  "https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=3840&auto=format&fit=crop", // Countryside
+  "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?q=80&w=3840&auto=format&fit=crop", // Cinque Terre
+  "https://images.unsplash.com/photo-1506929562872-bb421503ef21?q=80&w=3840&auto=format&fit=crop", // Beach
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=3840&auto=format&fit=crop"  // Ocean
 ];
 
 const Places: React.FC<PlacesProps> = ({ content }) => {

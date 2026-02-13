@@ -20,11 +20,11 @@ import { AudioProvider } from '../components/AudioProvider';
 import { client, urlFor, fileUrlFor } from '../lib/sanity';
 
 // Helper to normalize images from Sanity or String URL
-const resolveImage = (image: any) => {
+const resolveImage = (image: any, width = 1920) => {
   if (!image) return '';
   if (typeof image === 'string') return image;
   try {
-    return (urlFor(image) as any).width(1920).quality(100).auto('format').url();
+    return (urlFor(image) as any).width(width).quality(100).auto('format').url();
   } catch (e) {
     return '';
   }
@@ -97,7 +97,7 @@ export default function Home() {
               image: resolveImage(fg.image),
               images: fg.images?.map((img: any) => resolveImage(img)) || [],
             })),
-            places: data.places?.map((p: any) => ({ ...p, image: resolveImage(p.image) })),
+            places: data.places?.map((p: any) => ({ ...p, image: resolveImage(p.image, 3840) })),
             terms: data.terms?.map((t: any) => ({
               ...t,
               content: t.content || t.description,
