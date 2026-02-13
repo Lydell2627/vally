@@ -64,6 +64,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
 
     const bgHowl = new Howl({
       src: [bgUrl],
+      html5: true,   // Stream instead of downloading entire file
       loop: true,
       volume: bgVolume,
       preload: true,
@@ -85,25 +86,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
     };
   }, [bgUrl, bgVolume]);
 
-  // Initialize reel Howl if URL provided
-  useEffect(() => {
-    if (!reelUrl) return;
-
-    const reelHowl = new Howl({
-      src: [reelUrl],
-      loop: false,
-      volume: reelVolume,
-      preload: true,
-    });
-    reelHowlRef.current = reelHowl;
-
-    return () => {
-      reelHowl.stop();
-      reelHowl.unload();
-    };
-  }, [reelUrl, reelVolume]);
-
-  // Toggle play/pause — called by AudioPlayer button (user gesture required)
+  // Toggle play/pause — called by AudioPlayer button (requires user gesture)
   const togglePlay = useCallback(() => {
     const bg = bgHowlRef.current;
     if (!bg) return;
@@ -113,8 +96,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
       setIsPlaying(false);
       userPausedRef.current = true;
     } else {
-      bg.volume(bgVolume);
       bg.play();
+      bg.volume(bgVolume);
       setIsPlaying(true);
       userPausedRef.current = false;
     }
@@ -133,27 +116,39 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
   const resumeBg = useCallback(() => {
     const bg = bgHowlRef.current;
     if (bg && !isPlayingRef.current && !userPausedRef.current) {
-      bg.volume(bgVolume);
       bg.play();
+      bg.volume(bgVolume);
       setIsPlaying(true);
     }
   }, [bgVolume]);
 
-  // Play reel audio
+  // Play reel audio — lazy-load on demand (not preloaded at page load)
   const playReel = useCallback(() => {
-    const reel = reelHowlRef.current;
-    if (reel) {
-      reel.stop();
-      reel.volume(reelVolume);
-      reel.play();
+    if (!reelUrl) return;
+
+    // Stop existing reel if any
+    if (reelHowlRef.current) {
+      reelHowlRef.current.stop();
+      reelHowlRef.current.unload();
     }
-  }, [reelVolume]);
+
+    const reel = new Howl({
+      src: [reelUrl],
+      html5: true,
+      loop: false,
+      volume: reelVolume,
+    });
+    reelHowlRef.current = reel;
+    reel.play();
+  }, [reelUrl, reelVolume]);
 
   // Stop reel audio
   const stopReel = useCallback(() => {
     const reel = reelHowlRef.current;
     if (reel) {
       reel.stop();
+      reel.unload();
+      reelHowlRef.current = null;
     }
   }, []);
 
@@ -161,6 +156,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
   const playSfx = useCallback((url: string, volume: number = 0.4) => {
     const sfx = new Howl({
       src: [url],
+      html5: true,
       volume,
       loop: false,
     });
