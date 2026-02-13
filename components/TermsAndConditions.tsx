@@ -1,6 +1,6 @@
 
 import React, { useRef, useState, useMemo, useEffect } from 'react';
-import { TERMS_AND_CONDITIONS, UI_SFX, AUDIO_TRACKS } from '../constants';
+import { TERMS_AND_CONDITIONS, UI_SFX } from '../constants';
 import { motion, useScroll, useTransform, MotionValue, AnimatePresence, useInView } from 'framer-motion';
 import { useAudio } from './AudioProvider';
 
@@ -89,13 +89,9 @@ const TermsAndConditions: React.FC<TermsProps> = ({ content }) => {
   const [signature, setSignature] = useState("");
   const [isSigned, setIsSigned] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { playSfx, setTrack } = useAudio();
+  const { playSfx } = useAudio();
 
-  // Audio trigger for the proposal section
   const isInView = useInView(containerRef, { amount: 0.2 });
-  useEffect(() => {
-    if (isInView) setTrack(AUDIO_TRACKS.PROPOSAL);
-  }, [isInView, setTrack]);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,

@@ -1,21 +1,22 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { Howl } from 'howler';
-import { AUDIO_TRACKS } from '../constants';
 
-interface Track {
-  id: string;
-  url: string;
-  title: string;
-  vibe: string;
+interface AudioConfig {
+  backgroundUrl: string;
+  backgroundVolume: number;
+  reelUrl?: string;
+  reelVolume?: number;
 }
 
 interface AudioContextType {
   isPlaying: boolean;
   togglePlay: () => void;
-  setTrack: (trackOrId: Track | string) => void;
+  pauseBg: () => void;
+  resumeBg: () => void;
+  playReel: () => void;
+  stopReel: () => void;
   playSfx: (url: string, volume?: number) => void;
-  currentTrack: Track;
 }
 
 const AudioContext = createContext<AudioContextType | null>(null);
@@ -28,67 +29,74 @@ export const useAudio = () => {
   return context;
 };
 
-export const AudioProvider: React.FC<{ children: React.ReactNode, initialTracks?: any }> = ({ children, initialTracks }) => {
-  const tracks = initialTracks || AUDIO_TRACKS;
+const DEFAULT_BG_URL = 'https://assets.mixkit.co/music/preview/mixkit-dreaming-big-31.mp3';
+const DEFAULT_BG_VOLUME = 0.3;
+
+export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: AudioConfig }> = ({
+  children,
+  audioConfig,
+}) => {
+  const bgUrl = audioConfig?.backgroundUrl || DEFAULT_BG_URL;
+  const bgVolume = audioConfig?.backgroundVolume ?? DEFAULT_BG_VOLUME;
+  const reelUrl = audioConfig?.reelUrl;
+  const reelVolume = audioConfig?.reelVolume ?? 0.8;
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTrack, setCurrentTrack] = useState<Track>(tracks.HERO);
-
-  // Howl cache — one Howl instance per URL, reused on repeat visits
-  const howlCache = useRef<Map<string, Howl>>(new Map());
-  const activeHowlRef = useRef<Howl | null>(null);
-  const isPlayingRef = useRef(false); // Sync ref so callbacks always see latest
+  const bgHowlRef = useRef<Howl | null>(null);
+  const reelHowlRef = useRef<Howl | null>(null);
+  const isPlayingRef = useRef(false);
+  const userPausedRef = useRef(false); // Track if user explicitly paused
 
   // Keep ref in sync
   useEffect(() => {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
 
-  // Get or create a cached Howl for a URL
-  const getHowl = useCallback((url: string): Howl => {
-    if (howlCache.current.has(url)) {
-      return howlCache.current.get(url)!;
-    }
-    const howl = new Howl({
-      src: [url],
-      html5: true,     // Stream instead of download — faster start, lower memory
+  // Initialize background Howl
+  useEffect(() => {
+    const bgHowl = new Howl({
+      src: [bgUrl],
+      html5: true,
       loop: true,
       volume: 0,
       preload: true,
     });
-    howlCache.current.set(url, howl);
-    return howl;
-  }, []);
+    bgHowlRef.current = bgHowl;
 
-  // Initialize the first track on mount
-  useEffect(() => {
-    if (tracks.HERO?.url) {
-      const howl = getHowl(tracks.HERO.url);
-      activeHowlRef.current = howl;
-    }
-
-    // Cleanup all Howls on unmount
     return () => {
-      howlCache.current.forEach(howl => {
-        howl.stop();
-        howl.unload();
-      });
-      howlCache.current.clear();
+      bgHowl.stop();
+      bgHowl.unload();
     };
-  }, [tracks.HERO?.url, getHowl]);
+  }, [bgUrl]);
 
-  // Auto-start music on first user interaction (browser requires a gesture)
+  // Initialize reel Howl if URL provided
+  useEffect(() => {
+    if (!reelUrl) return;
+    const reelHowl = new Howl({
+      src: [reelUrl],
+      html5: true,
+      loop: false,
+      volume: 0,
+      preload: true,
+    });
+    reelHowlRef.current = reelHowl;
+
+    return () => {
+      reelHowl.stop();
+      reelHowl.unload();
+    };
+  }, [reelUrl]);
+
+  // Auto-start background on first user interaction
   useEffect(() => {
     const startOnInteraction = () => {
-      const howl = activeHowlRef.current;
-      if (howl && !isPlayingRef.current) {
-        howl.volume(0);
-        howl.play();
-        howl.fade(0, 1, 2500);
+      const bg = bgHowlRef.current;
+      if (bg && !isPlayingRef.current) {
+        bg.play();
+        bg.fade(0, bgVolume, 2500);
         setIsPlaying(true);
+        userPausedRef.current = false;
       }
-      document.removeEventListener('touchstart', startOnInteraction);
-      document.removeEventListener('click', startOnInteraction);
     };
 
     document.addEventListener('touchstart', startOnInteraction, { once: true });
@@ -98,79 +106,80 @@ export const AudioProvider: React.FC<{ children: React.ReactNode, initialTracks?
       document.removeEventListener('touchstart', startOnInteraction);
       document.removeEventListener('click', startOnInteraction);
     };
-  }, []);
+  }, [bgVolume]);
 
-  const setTrack = useCallback((trackOrId: Track | string) => {
-    // Resolve track
-    let newTrack: Track;
-    if (typeof trackOrId === 'string') {
-      const trackKey = Object.keys(tracks).find(k => tracks[k].id === trackOrId);
-      newTrack = trackKey ? tracks[trackKey] : (trackOrId as any);
-    } else {
-      newTrack = trackOrId;
-    }
-
-    if (!newTrack || !newTrack.url || newTrack.id === currentTrack.id) return;
-
-    setCurrentTrack(newTrack);
-
-    const newHowl = getHowl(newTrack.url);
-    const oldHowl = activeHowlRef.current;
-
-    if (!isPlayingRef.current) {
-      // Not playing yet — just set the active reference
-      activeHowlRef.current = newHowl;
-      return;
-    }
-
-    // === DJ CROSSFADE ===
-    // Fade in the new track
-    newHowl.volume(0);
-    newHowl.play();
-    newHowl.fade(0, 1, 2000);
-
-    // Fade out the old track
-    if (oldHowl && oldHowl !== newHowl) {
-      oldHowl.fade(oldHowl.volume(), 0, 2000);
-      // Stop the old howl after fade completes to free resources
-      setTimeout(() => {
-        oldHowl.stop();
-      }, 2100);
-    }
-
-    activeHowlRef.current = newHowl;
-  }, [tracks, currentTrack.id, getHowl]);
-
+  // Toggle play/pause (user-facing button)
   const togglePlay = useCallback(() => {
-    const howl = activeHowlRef.current;
-    if (!howl) return;
+    const bg = bgHowlRef.current;
+    if (!bg) return;
 
     if (isPlayingRef.current) {
-      howl.fade(howl.volume(), 0, 1000);
-      setTimeout(() => howl.pause(), 1100);
+      bg.fade(bg.volume(), 0, 800);
+      setTimeout(() => bg.pause(), 900);
       setIsPlaying(false);
+      userPausedRef.current = true;
     } else {
-      howl.play();
-      howl.fade(0, 1, 1000);
+      bg.play();
+      bg.fade(0, bgVolume, 800);
       setIsPlaying(true);
+      userPausedRef.current = false;
+    }
+  }, [bgVolume]);
+
+  // Pause background (for reel — only if currently playing)
+  const pauseBg = useCallback(() => {
+    const bg = bgHowlRef.current;
+    if (bg && isPlayingRef.current) {
+      bg.fade(bg.volume(), 0, 1000);
+      setTimeout(() => bg.pause(), 1100);
+      setIsPlaying(false);
     }
   }, []);
 
-  // Play a one-shot sound effect
+  // Resume background after reel (only if user hadn't manually paused)
+  const resumeBg = useCallback(() => {
+    const bg = bgHowlRef.current;
+    if (bg && !isPlayingRef.current && !userPausedRef.current) {
+      bg.play();
+      bg.fade(0, bgVolume, 1000);
+      setIsPlaying(true);
+    }
+  }, [bgVolume]);
+
+  // Play reel audio
+  const playReel = useCallback(() => {
+    const reel = reelHowlRef.current;
+    if (reel) {
+      reel.stop();
+      reel.volume(0);
+      reel.play();
+      reel.fade(0, reelVolume, 1000);
+    }
+  }, [reelVolume]);
+
+  // Stop reel audio
+  const stopReel = useCallback(() => {
+    const reel = reelHowlRef.current;
+    if (reel) {
+      reel.fade(reel.volume(), 0, 800);
+      setTimeout(() => reel.stop(), 900);
+    }
+  }, []);
+
+  // Play a one-shot SFX
   const playSfx = useCallback((url: string, volume: number = 0.4) => {
     const sfx = new Howl({
       src: [url],
       html5: true,
-      volume: volume,
+      volume,
       loop: false,
     });
     sfx.play();
-    // Auto-cleanup after playback
     sfx.on('end', () => sfx.unload());
   }, []);
 
   return (
-    <AudioContext.Provider value={{ isPlaying, togglePlay, setTrack, playSfx, currentTrack }}>
+    <AudioContext.Provider value={{ isPlaying, togglePlay, pauseBg, resumeBg, playReel, stopReel, playSfx }}>
       {children}
     </AudioContext.Provider>
   );

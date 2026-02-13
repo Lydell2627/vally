@@ -18,7 +18,6 @@ import WhyILikeYou from '../components/WhyILikeYou';
 import Footer from '../components/Footer';
 import { AudioProvider } from '../components/AudioProvider';
 import { client, urlFor, fileUrlFor } from '../lib/sanity';
-import { AUDIO_TRACKS } from '../constants';
 
 // Helper to normalize images from Sanity or String URL
 const resolveImage = (image: any) => {
@@ -34,7 +33,7 @@ const resolveImage = (image: any) => {
 export default function Home() {
   const [loading, setLoading] = useState(true);
   const [cmsData, setCmsData] = useState<any>(null);
-  const [customTracks, setCustomTracks] = useState<any>(null);
+  const [audioConfig, setAudioConfig] = useState<any>(undefined);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,20 +54,21 @@ export default function Home() {
         const data = await client.fetch(query);
 
         if (data) {
-          // Process CMS Audio Tracks
-          const trackOverrides: any = {};
+          // Process audio tracks — just background & reel
+          const config: any = {};
           data.audioTracks?.forEach((track: any) => {
             const url = track.file ? fileUrlFor(track.file) : track.url;
-            if (url && track.section) {
-              trackOverrides[track.section] = {
-                id: track.section,
-                url: url,
-                title: track.title,
-                vibe: track.vibe
-              };
+            if (url && track.role) {
+              if (track.role === 'background') {
+                config.backgroundUrl = url;
+                if (track.volume != null) config.backgroundVolume = track.volume;
+              } else if (track.role === 'reel') {
+                config.reelUrl = url;
+                if (track.volume != null) config.reelVolume = track.volume;
+              }
             }
           });
-          setCustomTracks(Object.keys(trackOverrides).length > 0 ? { ...AUDIO_TRACKS, ...trackOverrides } : null);
+          if (Object.keys(config).length > 0) setAudioConfig(config);
 
           const processed = {
             hero: data.hero ? {
@@ -114,7 +114,7 @@ export default function Home() {
   }, []);
 
   return (
-    <AudioProvider initialTracks={customTracks}>
+    <AudioProvider audioConfig={audioConfig}>
       <main className="w-full bg-brand-light text-brand-dark min-h-screen selection:bg-brand-red selection:text-white">
 
         <AnimatePresence>
@@ -168,3 +168,4 @@ export default function Home() {
     </AudioProvider>
   );
 }
+

@@ -1,9 +1,8 @@
 
 import React, { useRef, useState, useEffect, useMemo } from 'react';
-import { MILESTONES, AUDIO_TRACKS, Milestone } from '../constants';
+import { MILESTONES, Milestone } from '../constants';
 import { motion, useScroll, useTransform, MotionValue, useInView } from 'framer-motion';
 import Lightbox from './Lightbox';
-import { useAudio } from './AudioProvider';
 
 // --- Detect mobile once (SSR-safe) ---
 const useIsMobile = () => {
@@ -233,14 +232,11 @@ interface MilestonesProps {
 const Milestones: React.FC<MilestonesProps> = ({ content }) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const containerRef = useRef(null);
-  const { setTrack } = useAudio();
   const isInView = useInView(containerRef, { amount: 0.1 });
 
   const milestonesData = content || MILESTONES;
 
-  useEffect(() => {
-    if (isInView) setTrack(AUDIO_TRACKS.MILESTONES);
-  }, [isInView, setTrack]);
+
 
   return (
     <section id="memories" ref={containerRef} className="relative w-full bg-brand-light">

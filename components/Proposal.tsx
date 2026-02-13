@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import Marquee from './Marquee';
 import { useAudio } from './AudioProvider';
-import { AUDIO_TRACKS, UI_SFX } from '../constants';
+import { UI_SFX } from '../constants';
 
 interface Sticker {
   id: number;
@@ -36,14 +36,10 @@ const Proposal: React.FC<ProposalProps> = ({ reactions }) => {
       .catch(() => { });
   }, []);
 
-  // Audio Trigger
+  // Audio
   const containerRef = useRef(null);
-  const { setTrack, playSfx } = useAudio();
+  const { playSfx } = useAudio();
   const isInView = useInView(containerRef, { amount: 0.5 });
-
-  useEffect(() => {
-    if (isInView) setTrack(AUDIO_TRACKS.PROPOSAL);
-  }, [isInView, setTrack]);
 
   const handleYes = () => {
     playSfx(UI_SFX.SUCCESS, 0.6); // Louder chime

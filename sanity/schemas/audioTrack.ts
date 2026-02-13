@@ -7,20 +7,16 @@ export const audioTrack = defineType({
     icon: () => '🎵',
     fields: [
         defineField({
-            name: 'section',
-            title: 'Section',
+            name: 'role',
+            title: 'Track Role',
             type: 'string',
-            description: 'Which section of the website should this track play on?',
+            description: 'What role does this track play?',
             options: {
                 list: [
-                    { title: 'Hero (Opening)', value: 'hero' },
-                    { title: 'Milestones (Our Timeline)', value: 'milestones' },
-                    { title: 'Why I Like You', value: 'whyILikeYou' },
-                    { title: 'Future Memories (Photo Reel)', value: 'future' },
-                    { title: 'Places I Wanna Go With You', value: 'places' },
-                    { title: 'Terms & Conditions (The Proposal)', value: 'proposal' },
+                    { title: '🎶 Background Music (loops across entire site)', value: 'background' },
+                    { title: '🎬 Reel Music (plays only during Future Memories reel)', value: 'reel' },
                 ],
-                layout: 'dropdown',
+                layout: 'radio',
             },
             validation: (Rule) => Rule.required(),
         }),
@@ -28,13 +24,7 @@ export const audioTrack = defineType({
             name: 'title',
             title: 'Track Title',
             type: 'string',
-            description: 'Display name shown in the audio player (e.g., "The Beginning")',
-        }),
-        defineField({
-            name: 'vibe',
-            title: 'Vibe',
-            type: 'string',
-            description: 'Short mood descriptor (e.g., "Nostalgic", "Dreaming")',
+            description: 'Display name (e.g., "Our Song")',
         }),
         defineField({
             name: 'file',
@@ -43,7 +33,7 @@ export const audioTrack = defineType({
             options: {
                 accept: 'audio/*',
             },
-            description: 'Upload an MP3 or WAV file directly to Sanity.',
+            description: 'Upload an MP3 or WAV file directly.',
         }),
         defineField({
             name: 'url',
@@ -51,25 +41,24 @@ export const audioTrack = defineType({
             type: 'url',
             description: 'OR paste a direct link to an externally hosted audio file.',
         }),
+        defineField({
+            name: 'volume',
+            title: 'Volume',
+            type: 'number',
+            description: 'Playback volume (0.0 to 1.0). Background default: 0.3, Reel default: 0.8',
+            validation: (Rule) => Rule.min(0).max(1),
+            initialValue: 0.3,
+        }),
     ],
     preview: {
         select: {
             title: 'title',
-            section: 'section',
-            vibe: 'vibe',
+            role: 'role',
         },
-        prepare({ title, section, vibe }) {
-            const sectionLabels: Record<string, string> = {
-                hero: '🎬 Hero',
-                milestones: '📅 Milestones',
-                whyILikeYou: '❤️ Why I Like You',
-                future: '🌅 Future Memories',
-                places: '🗺️ Places',
-                proposal: '💍 Terms (Proposal)',
-            };
+        prepare({ title, role }) {
             return {
                 title: title || 'Untitled Track',
-                subtitle: `${sectionLabels[section] || section} — ${vibe || 'No vibe set'}`,
+                subtitle: role === 'background' ? '🎶 Background (looping)' : '🎬 Reel',
             };
         },
     },

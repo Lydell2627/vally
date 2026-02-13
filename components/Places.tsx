@@ -1,8 +1,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
-import { PLACES, AUDIO_TRACKS } from '../constants';
+import { PLACES } from '../constants';
 import { useInView } from 'framer-motion';
-import { useAudio } from './AudioProvider';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -23,14 +22,7 @@ const Places: React.FC<PlacesProps> = ({ content }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const placesData = content || PLACES;
-
-  // Audio Trigger (Music only, NO SFX)
-  const { setTrack } = useAudio();
   const isInView = useInView(containerRef, { amount: 0.1 });
-
-  useEffect(() => {
-    if (isInView) setTrack(AUDIO_TRACKS.PLACES);
-  }, [isInView, setTrack]);
 
   // Dream Spot Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);

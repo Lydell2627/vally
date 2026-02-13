@@ -1,10 +1,10 @@
 
 import React, { useRef, useEffect } from 'react';
-import { HERO_TEXT, AUDIO_TRACKS } from '../constants';
+import { HERO_TEXT } from '../constants';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import FloatingHearts from './FloatingHearts';
-import { useAudio } from './AudioProvider';
 import gsap from 'gsap';
+
 
 interface HeroProps {
   content?: {
@@ -31,16 +31,6 @@ const Hero: React.FC<HeroProps> = ({ content }) => {
   });
 
   const textData = content || HERO_TEXT;
-
-  // Audio Trigger
-  const { setTrack } = useAudio();
-  const isInView = useInView(containerRef, { amount: 0.5 });
-
-  useEffect(() => {
-    if (isInView) {
-      setTrack(AUDIO_TRACKS.HERO);
-    }
-  }, [isInView, setTrack]);
 
   // Parallax Effects
   const yText = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);

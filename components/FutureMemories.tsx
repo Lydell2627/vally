@@ -1,6 +1,6 @@
 
 import React, { useRef, useEffect, useState } from 'react';
-import { FUTURE_MEMORIES, AUDIO_TRACKS } from '../constants';
+import { FUTURE_MEMORIES } from '../constants';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { useAudio } from './AudioProvider';
 
@@ -11,12 +11,11 @@ interface FutureMemoriesProps {
 
 const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { setTrack, togglePlay, isPlaying: isGlobalPlaying } = useAudio();
+  const { pauseBg, resumeBg, playReel, stopReel } = useAudio();
 
   // Experience State
   const [mode, setMode] = useState<'IDLE' | 'PLAYING'>('IDLE');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const wasPlayingRef = useRef(false);
 
   // Gallery Lightbox State
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -25,28 +24,21 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
   const memoriesData = content || FUTURE_MEMORIES;
   const galleryData = gallery || [];
 
-  // Trigger audio when section comes into view
   const isInView = useInView(containerRef, { amount: 0.3 });
-  useEffect(() => {
-    if (isInView && mode === 'IDLE') setTrack(AUDIO_TRACKS.FUTURE);
-  }, [isInView, setTrack, mode]);
 
-  // Handle Entrance (Pause global, start reel)
+  // Handle Entrance (Pause background, start reel audio)
   const startExperience = () => {
-    wasPlayingRef.current = isGlobalPlaying;
-    if (isGlobalPlaying) {
-      togglePlay(); // Pause global ambient
-    }
+    pauseBg();
+    playReel();
     setMode('PLAYING');
     setCurrentIndex(0);
   };
 
-  // Handle Exit (Resume global if it was playing before)
+  // Handle Exit (Stop reel audio, resume background)
   const endExperience = () => {
     setMode('IDLE');
-    if (wasPlayingRef.current && !isGlobalPlaying) {
-      togglePlay();
-    }
+    stopReel();
+    resumeBg();
   };
 
   // Slide Logic (Timed slideshow, no local audio)
