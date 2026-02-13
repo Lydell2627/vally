@@ -56,8 +56,11 @@ export default function Home() {
         if (data) {
           // Process audio tracks — just background & reel
           const config: any = {};
+          console.log("🎵 Raw Sanity audioTracks:", JSON.stringify(data.audioTracks, null, 2));
           data.audioTracks?.forEach((track: any) => {
+            console.log("🎵 Processing track:", track.title, "| role:", track.role, "| file:", JSON.stringify(track.file), "| url:", track.url);
             const url = track.file ? fileUrlFor(track.file) : track.url;
+            console.log("🎵 Resolved URL:", url);
             if (url && track.role) {
               if (track.role === 'background') {
                 config.backgroundUrl = url;
@@ -68,6 +71,7 @@ export default function Home() {
               }
             }
           });
+          console.log("🎵 Final audioConfig:", JSON.stringify(config));
           if (Object.keys(config).length > 0) setAudioConfig(config);
 
           const processed = {
@@ -123,7 +127,7 @@ export default function Home() {
 
         {!loading && (
           <>
-            {/* <AudioPlayer /> — hidden until audio is fixed */}
+            <AudioPlayer />
             <AmbientBackground />
 
             <div id="home" className="fixed inset-0 z-0 w-full h-full">

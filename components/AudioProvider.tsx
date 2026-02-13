@@ -3,8 +3,8 @@ import React, { createContext, useContext, useEffect, useRef, useState, useCallb
 import { Howl } from 'howler';
 
 interface AudioConfig {
-  backgroundUrl: string;
-  backgroundVolume: number;
+  backgroundUrl?: string;
+  backgroundVolume?: number;
   reelUrl?: string;
   reelVolume?: number;
 }
@@ -29,14 +29,13 @@ export const useAudio = () => {
   return context;
 };
 
-const DEFAULT_BG_URL = 'https://assets.mixkit.co/music/preview/mixkit-dreaming-big-31.mp3';
 const DEFAULT_BG_VOLUME = 0.3;
 
 export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: AudioConfig }> = ({
   children,
   audioConfig,
 }) => {
-  const bgUrl = audioConfig?.backgroundUrl || DEFAULT_BG_URL;
+  const bgUrl = audioConfig?.backgroundUrl;
   const bgVolume = audioConfig?.backgroundVolume ?? DEFAULT_BG_VOLUME;
   const reelUrl = audioConfig?.reelUrl;
   const reelVolume = audioConfig?.reelVolume ?? 0.8;
@@ -45,96 +44,68 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
   const bgHowlRef = useRef<Howl | null>(null);
   const reelHowlRef = useRef<Howl | null>(null);
   const isPlayingRef = useRef(false);
-  const userPausedRef = useRef(false); // Track if user explicitly paused
+  const userPausedRef = useRef(false);
 
   // Keep ref in sync
   useEffect(() => {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
 
-  // Initialize background Howl
+  // Initialize background Howl — only when we have a valid URL from Sanity
   useEffect(() => {
-    let isMounted = true;
-    let activeHowl: Howl | null = null;
-
-    // Check if we should be playing (global state + user intent)
-    const shouldPlay = isPlayingRef.current && !userPausedRef.current;
+    if (!bgUrl) {
+      console.log("AudioProvider: No background URL provided, skipping init.");
+      return;
+    }
 
     console.log("AudioProvider: Initializing bg track:", bgUrl);
 
-    // Create new Howl
     const bgHowl = new Howl({
       src: [bgUrl],
       html5: true,
       loop: true,
-      volume: 0, // Start silent for fade-in
+      volume: 0,
       preload: true,
-      onloaderror: (id, err) => {
-        if (!isMounted) return;
-        console.error("AudioProvider: Load Error:", err, "ID:", id, "URL:", bgUrl);
-
-        // Fallback to default if custom URL fails and it's not already the default
-        if (bgUrl !== DEFAULT_BG_URL) {
-          console.log("AudioProvider: Falling back to default track due to error.");
-          const fallbackHowl = new Howl({
-            src: [DEFAULT_BG_URL],
-            html5: true,
-            loop: true,
-            volume: 0,
-            preload: true,
-          });
-
-          // Update our cleanup target to the fallback
-          activeHowl = fallbackHowl;
-          bgHowlRef.current = fallbackHowl;
-
-          if (shouldPlay) {
-            fallbackHowl.play();
-            fallbackHowl.fade(0, bgVolume, 1000);
-          }
-        }
+      onload: () => {
+        console.log("AudioProvider: Background track loaded successfully!");
       },
-      onplayerror: (id, err) => {
-        if (!isMounted) return;
-        console.error("AudioProvider: Play Error:", err, "ID:", id);
-        // Reset state so user can try clicking again if it was an interaction issue
-        bgHowl.once('unlock', () => {
-          if (shouldPlay && isMounted) bgHowl.play();
-        });
-      }
+      onloaderror: (_id, err) => {
+        console.error("AudioProvider: Background load error:", err, "URL:", bgUrl);
+      },
+      onplayerror: (_id, err) => {
+        console.error("AudioProvider: Background play error:", err);
+        // Retry on unlock (browser autoplay policy)
+        bgHowl.once('unlock', () => bgHowl.play());
+      },
     });
 
-    // Valid start
-    activeHowl = bgHowl;
+    // Clean up previous instance
+    const oldHowl = bgHowlRef.current;
+    if (oldHowl) {
+      oldHowl.stop();
+      oldHowl.unload();
+    }
 
-    // If we were playing, swap seamlessly
-    if (shouldPlay) {
+    bgHowlRef.current = bgHowl;
+
+    // If already playing (e.g. URL changed while music was on), resume
+    if (isPlayingRef.current) {
       bgHowl.play();
       bgHowl.fade(0, bgVolume, 1000);
     }
 
-    // Update ref
-    const oldHowl = bgHowlRef.current;
-    bgHowlRef.current = bgHowl;
-
-    // Cleanup old Howl
-    if (oldHowl) {
-      oldHowl.fade(oldHowl.volume(), 0, 500);
-      setTimeout(() => oldHowl.unload(), 500);
-    }
-
     return () => {
-      isMounted = false;
-      if (activeHowl) {
-        activeHowl.stop();
-        activeHowl.unload();
-      }
+      bgHowl.stop();
+      bgHowl.unload();
     };
   }, [bgUrl, bgVolume]);
 
   // Initialize reel Howl if URL provided
   useEffect(() => {
     if (!reelUrl) return;
+
+    console.log("AudioProvider: Initializing reel track:", reelUrl);
+
     const reelHowl = new Howl({
       src: [reelUrl],
       html5: true,
@@ -152,6 +123,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
 
   // Auto-start background on first user interaction
   useEffect(() => {
+    if (!bgUrl) return; // Don't auto-start if no URL
+
     const startOnInteraction = () => {
       const bg = bgHowlRef.current;
       if (bg && !isPlayingRef.current) {
@@ -169,7 +142,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
       document.removeEventListener('touchstart', startOnInteraction);
       document.removeEventListener('click', startOnInteraction);
     };
-  }, [bgVolume]);
+  }, [bgVolume, bgUrl]);
 
   // Toggle play/pause (user-facing button)
   const togglePlay = useCallback(() => {
@@ -189,7 +162,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
     }
   }, [bgVolume]);
 
-  // Pause background (for reel — only if currently playing)
+  // Pause background (for reel)
   const pauseBg = useCallback(() => {
     const bg = bgHowlRef.current;
     if (bg && isPlayingRef.current) {
@@ -199,7 +172,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
     }
   }, []);
 
-  // Resume background after reel (only if user hadn't manually paused)
+  // Resume background after reel
   const resumeBg = useCallback(() => {
     const bg = bgHowlRef.current;
     if (bg && !isPlayingRef.current && !userPausedRef.current) {
