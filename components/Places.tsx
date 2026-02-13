@@ -177,7 +177,7 @@ const Places: React.FC<PlacesProps> = ({ content }) => {
                 </div>
 
                 <div className="overflow-hidden pt-2">
-                  <h1 className="font-display text-5xl md:text-[clamp(4rem,10vw,9rem)] uppercase text-white leading-[0.9] mb-6 drop-shadow-2xl break-words hyphens-auto w-full">
+                  <h1 className="font-display text-4xl md:text-[clamp(2.5rem,5vw,6rem)] uppercase text-white leading-[0.9] mb-4 drop-shadow-2xl break-words hyphens-auto w-full">
                     {place.name}
                   </h1>
                 </div>
