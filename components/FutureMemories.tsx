@@ -190,44 +190,13 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
           )}
         </motion.div>
 
-        {/* The Reel Grid (Visible when IDLE) */}
-        {memoriesData.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
-            {memoriesData.map((item, i) => (
-              <motion.div
-                key={item.id || i}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ delay: i * 0.15, duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                className="group relative flex flex-col opacity-60 hover:opacity-100 transition-opacity"
-              >
-                <div className="aspect-[3/4] relative bg-[#0a0a0a] border border-white/10 overflow-hidden">
-                  {item.image ? (
-                    <img src={item.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt={item.title} />
-                  ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-white/20">
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mb-4">
-                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                        <circle cx="12" cy="13" r="4" />
-                      </svg>
-                      <span className="font-display text-sm tracking-widest opacity-50">Pending Exposure</span>
-                    </div>
-                  )}
-                </div>
-                <h3 className="font-display text-2xl uppercase mt-6 text-white/40 group-hover:text-white transition-colors">{item.title}</h3>
-              </motion.div>
-            ))}
-          </div>
-        )}
-
         {/* 
           ========================================
-          GALLERY SECTION — Cover Image + Lightbox
+          GALLERY SECTION — Entry Cards Grid
           ========================================
         */}
         {galleryData.length > 0 && (
-          <div className="mt-32 md:mt-48">
+          <div className="mt-16 md:mt-24">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -238,59 +207,66 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
                 The <span className="text-brand-red">Gallery</span>
               </h3>
               <p className="font-serif italic text-lg md:text-2xl text-gray-400">
-                {galleryData.length} photos waiting to be taken.
+                {galleryData.length} {galleryData.length === 1 ? 'collection' : 'collections'} waiting to be captured.
               </p>
             </motion.div>
 
-            {/* Cover Image — click to open gallery */}
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-              className="relative cursor-pointer group max-w-4xl mx-auto"
-              onClick={() => openLightbox(0)}
-            >
-              <div className="relative overflow-hidden rounded-sm border border-white/10 group-hover:border-white/30 transition-all duration-500">
-                {/* Main cover photo */}
-                <img
-                  src={galleryData[0].image}
-                  alt={galleryData[0].title}
-                  className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
-                />
+            {/* Entry Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+              {galleryData.map((entry, i) => {
+                const totalPhotos = 1 + (entry.images?.length || 0);
+                return (
+                  <motion.div
+                    key={entry.id || `gallery-${i}`}
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-30px" }}
+                    transition={{ delay: i * 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                    className="relative cursor-pointer group"
+                    onClick={() => openLightbox(i)}
+                  >
+                    <div className="relative overflow-hidden rounded-sm border border-white/10 group-hover:border-white/30 transition-all duration-500">
+                      {/* Cover Photo */}
+                      <img
+                        src={entry.image}
+                        alt={entry.title}
+                        className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      />
 
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent flex flex-col items-center justify-end pb-8 md:pb-12">
-                  {/* Photo count badge */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex -space-x-2">
-                      {galleryData.slice(0, 4).map((item, i) => (
-                        <div
-                          key={i}
-                          className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-black overflow-hidden"
-                        >
-                          <img src={item.image} alt="" className="w-full h-full object-cover" />
-                        </div>
-                      ))}
-                      {galleryData.length > 4 && (
-                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-black bg-brand-red flex items-center justify-center">
-                          <span className="font-display text-[10px] text-white">+{galleryData.length - 4}</span>
+                      {/* Dark overlay from bottom */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                      {/* Photo count badge */}
+                      {totalPhotos > 1 && (
+                        <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1.5">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/70">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                          </svg>
+                          <span className="font-display text-xs text-white/70">{totalPhotos}</span>
                         </div>
                       )}
-                    </div>
-                  </div>
-                  <span className="font-display text-lg md:text-2xl uppercase tracking-widest text-white drop-shadow-lg">
-                    View Gallery
-                  </span>
-                  <span className="font-serif italic text-sm text-white/60 mt-1">
-                    {galleryData.length} photos
-                  </span>
-                </div>
 
-                {/* Subtle shimmer on hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
-              </div>
-            </motion.div>
+                      {/* Title and info */}
+                      <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
+                        <h4 className="font-display text-xl md:text-2xl uppercase text-white tracking-tight leading-tight mb-1">
+                          {entry.title}
+                        </h4>
+                        {entry.description && (
+                          <p className="font-serif italic text-sm text-white/50 line-clamp-2">
+                            {entry.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Shimmer on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
@@ -360,7 +336,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
 
                       <img
                         src={currentMemory.image || `https://picsum.photos/seed/${currentIndex + 55}/1920/1080`}
-                        className="w-full h-full object-cover opacity-80"
+                        className="w-full h-full object-contain opacity-80"
                         alt={currentMemory.title || 'Future Memory'}
                       />
                     </motion.div>
