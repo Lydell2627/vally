@@ -151,9 +151,7 @@ export default function Home() {
                   <TermsAndConditions content={cmsData?.terms} />
                 </div>
 
-                <div id="proposal">
-                  <Proposal reactions={cmsData?.metrics} />
-                </div>
+                <Proposal reactions={cmsData?.metrics} />
               </div>
 
               <Footer />

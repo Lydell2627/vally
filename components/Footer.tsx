@@ -1,8 +1,20 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 const Footer: React.FC = () => {
+  const [hasSaidYes, setHasSaidYes] = useState(false);
+
+  // Check proposal status from the API
+  useEffect(() => {
+    fetch('/api/metrics')
+      .then(res => res.json())
+      .then(data => {
+        if (data.hasSaidYes) setHasSaidYes(true);
+      })
+      .catch(() => { });
+  }, []);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -10,7 +22,6 @@ const Footer: React.FC = () => {
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      // Offset for sticky headers if needed, but smooth scroll is key
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
@@ -35,8 +46,11 @@ const Footer: React.FC = () => {
               transition={{ duration: 0.8 }}
               className="font-display text-5xl md:text-7xl uppercase leading-[0.9] mb-6 md:mb-8"
             >
-              This could be<br />
-              <span className="text-brand-red">The Start.</span>
+              {hasSaidYes ? (
+                <>It's a<br /><span className="text-brand-red">Date! 💖</span></>
+              ) : (
+                <>This could be<br /><span className="text-brand-red">The Start.</span></>
+              )}
             </motion.h2>
             <motion.p
               initial={{ opacity: 0 }}
@@ -44,7 +58,10 @@ const Footer: React.FC = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="font-serif text-lg md:text-2xl text-white/60 max-w-md italic"
             >
-              All great stories start with a single "Yes". Or at least a "Maybe".
+              {hasSaidYes
+                ? "She said yes. The best chapter starts now."
+                : "All great stories start with a single \"Yes\". Or at least a \"Maybe\"."
+              }
             </motion.p>
 
             <motion.div
@@ -85,8 +102,17 @@ const Footer: React.FC = () => {
               <div className="mt-8 p-4 bg-white/5 rounded-lg border border-white/10 hidden md:block">
                 <p className="text-xs uppercase tracking-widest text-white/40 mb-1">Status</p>
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  <span className="font-display text-sm">Waiting for you</span>
+                  {hasSaidYes ? (
+                    <>
+                      <span className="w-2 h-2 bg-brand-red rounded-full animate-pulse" />
+                      <span className="font-display text-sm">She said yes! 💖</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      <span className="font-display text-sm">Waiting for you</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
