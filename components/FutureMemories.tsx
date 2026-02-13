@@ -44,7 +44,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
   // Slide Logic (Timed slideshow, no local audio)
   useEffect(() => {
     if (mode === 'PLAYING' && memoriesData.length > 0) {
-      const SLIDE_DURATION = 4000; // 4 seconds per slide
+      const SLIDE_DURATION = 6000; // 6 seconds per slide
       const TOTAL_REEL_TIME = memoriesData.length * SLIDE_DURATION;
 
       // Auto-end reel after all slides have shown
@@ -362,7 +362,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
                   className="h-full bg-brand-red box-shadow-[0_0_20px_rgba(206,18,21,0.8)]"
                   initial={{ width: "0%" }}
                   animate={{ width: "100%" }}
-                  transition={{ duration: memoriesData.length * 4, ease: "linear" }}
+                  transition={{ duration: memoriesData.length * 6, ease: "linear" }}
                 />
               </div>
             </div>
