@@ -54,20 +54,39 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
 
   // Initialize background Howl
   useEffect(() => {
+    // Check if we should be playing (global state + user intent)
+    const shouldPlay = isPlayingRef.current && !userPausedRef.current;
+
+    // Create new Howl
     const bgHowl = new Howl({
       src: [bgUrl],
       html5: true,
       loop: true,
-      volume: 0,
+      volume: 0, // Start silent for fade-in
       preload: true,
     });
+
+    // If we were playing, swap seamlessly
+    if (shouldPlay) {
+      bgHowl.play();
+      bgHowl.fade(0, bgVolume, 1000);
+    }
+
+    // Update ref
+    const oldHowl = bgHowlRef.current;
     bgHowlRef.current = bgHowl;
+
+    // Cleanup old Howl
+    if (oldHowl) {
+      oldHowl.fade(oldHowl.volume(), 0, 500);
+      setTimeout(() => oldHowl.unload(), 500);
+    }
 
     return () => {
       bgHowl.stop();
       bgHowl.unload();
     };
-  }, [bgUrl]);
+  }, [bgUrl, bgVolume]);
 
   // Initialize reel Howl if URL provided
   useEffect(() => {
