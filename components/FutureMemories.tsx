@@ -6,9 +6,10 @@ import { useAudio } from './AudioProvider';
 
 interface FutureMemoriesProps {
   content?: any[];
+  gallery?: any[];
 }
 
-const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
+const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { setTrack, togglePlay, isPlaying: isGlobalPlaying } = useAudio();
 
@@ -17,7 +18,11 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const wasPlayingRef = useRef(false);
 
+  // Gallery Lightbox State
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
   const memoriesData = content || FUTURE_MEMORIES;
+  const galleryData = gallery || [];
 
   // Trigger audio when section comes into view
   const isInView = useInView(containerRef, { amount: 0.3 });
@@ -69,6 +74,28 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
   // Safe access to current memory
   const currentMemory = memoriesData[currentIndex] || { title: '', description: '', image: '' };
 
+  // Lightbox navigation
+  const openLightbox = (index: number) => setLightboxIndex(index);
+  const closeLightbox = () => setLightboxIndex(null);
+  const prevLightbox = () => {
+    if (lightboxIndex !== null && lightboxIndex > 0) setLightboxIndex(lightboxIndex - 1);
+  };
+  const nextLightbox = () => {
+    if (lightboxIndex !== null && lightboxIndex < galleryData.length - 1) setLightboxIndex(lightboxIndex + 1);
+  };
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') prevLightbox();
+      if (e.key === 'ArrowRight') nextLightbox();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [lightboxIndex, galleryData.length]);
+
   return (
     <section id="future" ref={containerRef} className="bg-brand-dark text-white py-24 md:py-40 px-6 overflow-hidden relative min-h-screen">
       {/* Background Ambience */}
@@ -76,7 +103,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
 
       {/* 
         ========================================
-        IDLE VIEW (Grid) 
+        REEL SECTION (Existing behavior)
         ========================================
       */}
       <div className="max-w-7xl mx-auto relative z-10">
@@ -100,60 +127,116 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
           </div>
 
           {/* Play Button Trigger */}
-          <motion.button
-            onClick={startExperience}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="mt-12 md:mt-0 self-end md:self-auto group relative overflow-hidden rounded-full px-8 py-6 bg-brand-red text-white shadow-[0_0_40px_-10px_rgba(206,18,21,0.6)]"
-          >
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out" />
-            <div className="relative flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-white text-brand-red flex items-center justify-center">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
+          {memoriesData.length > 0 && (
+            <motion.button
+              onClick={startExperience}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="mt-12 md:mt-0 self-end md:self-auto group relative overflow-hidden rounded-full px-8 py-6 bg-brand-red text-white shadow-[0_0_40px_-10px_rgba(206,18,21,0.6)]"
+            >
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out" />
+              <div className="relative flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-white text-brand-red flex items-center justify-center">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <span className="block font-display text-lg uppercase tracking-wider leading-none">Play Reel</span>
+                  <span className="block font-serif italic text-xs opacity-80">Turn sound on</span>
+                </div>
               </div>
-              <div className="text-left">
-                <span className="block font-display text-lg uppercase tracking-wider leading-none">Play Reel</span>
-                <span className="block font-serif italic text-xs opacity-80">Turn sound on</span>
-              </div>
-            </div>
-          </motion.button>
+            </motion.button>
+          )}
         </motion.div>
 
-        {/* The Grid (Visible when IDLE) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
-          {memoriesData.map((item, i) => (
+        {/* The Reel Grid (Visible when IDLE) */}
+        {memoriesData.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
+            {memoriesData.map((item, i) => (
+              <motion.div
+                key={item.id || i}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: i * 0.15, duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                className="group relative flex flex-col opacity-60 hover:opacity-100 transition-opacity"
+              >
+                <div className="aspect-[3/4] relative bg-[#0a0a0a] border border-white/10 overflow-hidden">
+                  {item.image ? (
+                    <img src={item.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt={item.title} />
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-white/20">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mb-4">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                        <circle cx="12" cy="13" r="4" />
+                      </svg>
+                      <span className="font-display text-sm tracking-widest opacity-50">Pending Exposure</span>
+                    </div>
+                  )}
+                </div>
+                <h3 className="font-display text-2xl uppercase mt-6 text-white/40 group-hover:text-white transition-colors">{item.title}</h3>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* 
+          ========================================
+          GALLERY SECTION (New — clickable photos)
+          ========================================
+        */}
+        {galleryData.length > 0 && (
+          <div className="mt-32 md:mt-48">
             <motion.div
-              key={item.id || i}
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ delay: i * 0.15, duration: 1, ease: [0.22, 1, 0.36, 1] }}
-              className="group relative flex flex-col opacity-60 hover:opacity-100 transition-opacity"
+              viewport={{ once: true }}
+              className="mb-12 md:mb-16"
             >
-              <div className="aspect-[3/4] relative bg-[#0a0a0a] border border-white/10 overflow-hidden">
-                {item.image ? (
-                  <img src={item.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt={item.title} />
-                ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white/20">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mb-4">
-                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                      <circle cx="12" cy="13" r="4" />
-                    </svg>
-                    <span className="font-display text-sm tracking-widest opacity-50">Pending Exposure</span>
-                  </div>
-                )}
-              </div>
-              <h3 className="font-display text-2xl uppercase mt-6 text-white/40 group-hover:text-white transition-colors">{item.title}</h3>
+              <h3 className="font-display text-3xl md:text-6xl uppercase leading-[0.85] mb-4">
+                The <span className="text-brand-red">Gallery</span>
+              </h3>
+              <p className="font-serif italic text-lg md:text-2xl text-gray-400">
+                Tap any photo to see it up close.
+              </p>
             </motion.div>
-          ))}
-        </div>
+
+            {/* Photo Grid */}
+            <div className="columns-2 md:columns-3 gap-4 md:gap-6">
+              {galleryData.map((item, i) => (
+                <motion.div
+                  key={item.id || `gallery-${i}`}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-30px" }}
+                  transition={{ delay: (i % 3) * 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                  className="mb-4 md:mb-6 break-inside-avoid cursor-pointer group"
+                  onClick={() => openLightbox(i)}
+                >
+                  <div className="relative overflow-hidden rounded-sm border border-white/5 group-hover:border-white/20 transition-colors duration-300">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                    />
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                      <span className="font-display text-sm md:text-base uppercase tracking-wider text-white drop-shadow-lg">
+                        {item.title}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 
         ========================================
-        IMMERSIVE CINEMATIC MODE 
+        IMMERSIVE CINEMATIC MODE (Reel Player)
         ========================================
       */}
       <AnimatePresence>
@@ -180,11 +263,6 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
                   key={currentIndex}
                   className="absolute inset-0 w-full h-full overflow-hidden"
                 >
-                  {/* 
-                                AWARD-WINNING TRANSITION ARCHITECTURE:
-                                1. Wrapper: Handles the "Reveal" (Scale Down + De-blur)
-                                2. Inner: Handles the "Live Movement" (Slow Pan/Scale Up)
-                            */}
                   <motion.div
                     className="w-full h-full"
                     initial={{ scale: 1.4, filter: "blur(20px)", opacity: 0 }}
@@ -201,7 +279,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
                     }}
                     transition={{
                       duration: 1.8,
-                      ease: [0.19, 1, 0.22, 1] // "Expo Out" feel - very premium snap
+                      ease: [0.19, 1, 0.22, 1]
                     }}
                   >
                     <motion.div
@@ -249,16 +327,99 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content }) => {
                 </AnimatePresence>
               </div>
 
-              {/* Progress Bar (Film Grain style) */}
+              {/* Progress Bar */}
               <div className="absolute bottom-0 left-0 w-full h-1 bg-white/10">
                 <motion.div
                   className="h-full bg-brand-red box-shadow-[0_0_20px_rgba(206,18,21,0.8)]"
                   initial={{ width: "0%" }}
                   animate={{ width: "100%" }}
-                  transition={{ duration: 25, ease: "linear" }} // Approx song length visual
+                  transition={{ duration: memoriesData.length * 4, ease: "linear" }}
                 />
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 
+        ========================================
+        GALLERY LIGHTBOX
+        ========================================
+      */}
+      <AnimatePresence>
+        {lightboxIndex !== null && galleryData[lightboxIndex] && (
+          <motion.div
+            key="lightbox"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center"
+            onClick={closeLightbox}
+          >
+            {/* Close Button */}
+            <button
+              onClick={closeLightbox}
+              className="absolute top-6 right-6 z-50 text-white/50 hover:text-white transition-colors p-4"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Previous Arrow */}
+            {lightboxIndex > 0 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); prevLightbox(); }}
+                className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-50 text-white/40 hover:text-white transition-colors p-4"
+              >
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+            )}
+
+            {/* Next Arrow */}
+            {lightboxIndex < galleryData.length - 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); nextLightbox(); }}
+                className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-50 text-white/40 hover:text-white transition-colors p-4"
+              >
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
+            )}
+
+            {/* Image + Caption */}
+            <motion.div
+              key={lightboxIndex}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="relative max-w-5xl max-h-[85vh] mx-4 flex flex-col items-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={galleryData[lightboxIndex].image}
+                alt={galleryData[lightboxIndex].title}
+                className="max-w-full max-h-[70vh] object-contain rounded-sm shadow-2xl"
+              />
+              <div className="mt-6 text-center">
+                <h3 className="font-display text-xl md:text-3xl uppercase text-white mb-2">
+                  {galleryData[lightboxIndex].title}
+                </h3>
+                {galleryData[lightboxIndex].description && (
+                  <p className="font-serif italic text-base md:text-lg text-white/70 max-w-xl">
+                    {galleryData[lightboxIndex].description}
+                  </p>
+                )}
+              </div>
+              {/* Counter */}
+              <p className="mt-4 font-display text-xs uppercase tracking-widest text-white/30">
+                {lightboxIndex + 1} / {galleryData.length}
+              </p>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

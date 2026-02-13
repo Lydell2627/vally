@@ -3,6 +3,7 @@ import { narrative } from './narrative';
 import { milestone } from './milestone';
 import { reason } from './reason';
 import { futureMemory } from './futureMemory';
+import { futureGallery } from './futureGallery';
 import { place } from './place';
 import { term } from './term';
 import { audioTrack } from './audioTrack';
@@ -15,6 +16,7 @@ export const schemaTypes = [
     milestone,
     reason,
     futureMemory,
+    futureGallery,
     place,
     term,
     audioTrack,

@@ -45,6 +45,7 @@ export default function Home() {
           "milestones": *[_type == "milestone"] | order(order asc, year asc),
           "whyILikeYou": *[_type == "reason"] | order(order asc),
           "futureMemories": *[_type == "futureMemory"] | order(order asc),
+          "futureGallery": *[_type == "futureGallery"] | order(order asc),
           "places": *[_type == "place"] | order(order asc),
           "terms": *[_type == "term"] | order(order asc),
           "audioTracks": *[_type == "audioTrack"],
@@ -87,6 +88,7 @@ export default function Home() {
               description: r.text || r.description,
             })),
             futureMemories: data.futureMemories?.map((fm: any) => ({ ...fm, image: resolveImage(fm.image) })),
+            futureGallery: data.futureGallery?.map((fg: any) => ({ ...fg, image: resolveImage(fg.image) })),
             places: data.places?.map((p: any) => ({ ...p, image: resolveImage(p.image) })),
             terms: data.terms?.map((t: any) => ({
               ...t,
@@ -143,7 +145,7 @@ export default function Home() {
                 {/* Dark Sections Group */}
                 <div className="bg-brand-dark text-white relative z-20">
                   <div id="future">
-                    <FutureMemories content={cmsData?.futureMemories} />
+                    <FutureMemories content={cmsData?.futureMemories} gallery={cmsData?.futureGallery} />
                   </div>
 
                   <Places content={cmsData?.places} />
