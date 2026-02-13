@@ -4,7 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAudio } from './AudioProvider';
 
 const AudioPlayer: React.FC = () => {
-   const { isPlaying, togglePlay } = useAudio();
+   const { isPlaying, reelActive, togglePlay } = useAudio();
+
+   // Hide during reel playback
+   if (reelActive) return null;
 
    return (
       <motion.button

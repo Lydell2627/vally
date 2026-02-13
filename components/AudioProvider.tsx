@@ -11,6 +11,7 @@ interface AudioConfig {
 
 interface AudioContextType {
   isPlaying: boolean;
+  reelActive: boolean;
   togglePlay: () => void;
   pauseBg: () => void;
   resumeBg: () => void;
@@ -41,6 +42,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
   const reelVolume = audioConfig?.reelVolume ?? 0.8;
 
   const [isPlaying, setIsPlaying] = useState(false);
+  const [reelActive, setReelActive] = useState(false);
   const bgHowlRef = useRef<Howl | null>(null);
   const reelHowlRef = useRef<Howl | null>(null);
   const isPlayingRef = useRef(false);
@@ -140,6 +142,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
     });
     reelHowlRef.current = reel;
     reel.play();
+    setReelActive(true);
   }, [reelUrl, reelVolume]);
 
   // Stop reel audio
@@ -150,6 +153,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
       reel.unload();
       reelHowlRef.current = null;
     }
+    setReelActive(false);
   }, []);
 
   // Play a one-shot SFX
@@ -165,7 +169,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
   }, []);
 
   return (
-    <AudioContext.Provider value={{ isPlaying, togglePlay, pauseBg, resumeBg, playReel, stopReel, playSfx }}>
+    <AudioContext.Provider value={{ isPlaying, reelActive, togglePlay, pauseBg, resumeBg, playReel, stopReel, playSfx }}>
       {children}
     </AudioContext.Provider>
   );
