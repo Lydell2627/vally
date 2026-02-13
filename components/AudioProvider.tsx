@@ -1,5 +1,6 @@
 
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { Howl } from 'howler';
 import { AUDIO_TRACKS } from '../constants';
 
 interface Track {
@@ -28,47 +29,64 @@ export const useAudio = () => {
 };
 
 export const AudioProvider: React.FC<{ children: React.ReactNode, initialTracks?: any }> = ({ children, initialTracks }) => {
-  // Use CMS tracks if provided, otherwise fallback to constants
   const tracks = initialTracks || AUDIO_TRACKS;
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<Track>(tracks.HERO);
 
-  const audioA = useRef<HTMLAudioElement | null>(null);
-  const audioB = useRef<HTMLAudioElement | null>(null);
-  const activeAudio = useRef<'A' | 'B'>('A');
+  // Howl cache — one Howl instance per URL, reused on repeat visits
+  const howlCache = useRef<Map<string, Howl>>(new Map());
+  const activeHowlRef = useRef<Howl | null>(null);
+  const isPlayingRef = useRef(false); // Sync ref so callbacks always see latest
 
+  // Keep ref in sync
   useEffect(() => {
-    // Initialize audio elements on mount to avoid SSR issues
-    audioA.current = new Audio();
-    audioB.current = new Audio();
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
 
-    audioA.current.loop = true;
-    audioB.current.loop = true;
-    audioA.current.volume = 0;
-    audioB.current.volume = 0;
+  // Get or create a cached Howl for a URL
+  const getHowl = useCallback((url: string): Howl => {
+    if (howlCache.current.has(url)) {
+      return howlCache.current.get(url)!;
+    }
+    const howl = new Howl({
+      src: [url],
+      html5: true,     // Stream instead of download — faster start, lower memory
+      loop: true,
+      volume: 0,
+      preload: true,
+    });
+    howlCache.current.set(url, howl);
+    return howl;
+  }, []);
 
-    // Set initial source
-    audioA.current.src = tracks.HERO.url;
+  // Initialize the first track on mount
+  useEffect(() => {
+    if (tracks.HERO?.url) {
+      const howl = getHowl(tracks.HERO.url);
+      activeHowlRef.current = howl;
+    }
 
+    // Cleanup all Howls on unmount
     return () => {
-      audioA.current?.pause();
-      audioB.current?.pause();
+      howlCache.current.forEach(howl => {
+        howl.stop();
+        howl.unload();
+      });
+      howlCache.current.clear();
     };
-  }, [tracks.HERO.url]);
+  }, [tracks.HERO?.url, getHowl]);
 
   // Auto-start music on first user interaction (browser requires a gesture)
   useEffect(() => {
     const startOnInteraction = () => {
-      const a = audioA.current;
-      if (a && !isPlaying) {
-        a.volume = 0;
-        a.play().then(() => {
-          setIsPlaying(true);
-          fade(a, 1, 2500);
-        }).catch(() => { });
+      const howl = activeHowlRef.current;
+      if (howl && !isPlayingRef.current) {
+        howl.volume(0);
+        howl.play();
+        howl.fade(0, 1, 2500);
+        setIsPlaying(true);
       }
-      // Remove listeners after first trigger
       document.removeEventListener('touchstart', startOnInteraction);
       document.removeEventListener('click', startOnInteraction);
     };
@@ -82,39 +100,12 @@ export const AudioProvider: React.FC<{ children: React.ReactNode, initialTracks?
     };
   }, []);
 
-  const fade = (audio: HTMLAudioElement, targetVolume: number, duration: number) => {
-    const step = 0.05;
-    const intervalTime = 50;
-    const steps = duration / intervalTime;
-    const volStep = (targetVolume - audio.volume) / steps;
-
-    const interval = setInterval(() => {
-      if (!audio) {
-        clearInterval(interval);
-        return;
-      }
-
-      let newVol = audio.volume + volStep;
-      if (volStep > 0 && newVol >= targetVolume) newVol = targetVolume;
-      if (volStep < 0 && newVol <= targetVolume) newVol = targetVolume;
-
-      audio.volume = Math.max(0, Math.min(1, newVol));
-
-      if (newVol === targetVolume) {
-        clearInterval(interval);
-        if (targetVolume === 0) audio.pause();
-      }
-    }, intervalTime);
-    return interval;
-  };
-
-  const setTrack = (trackOrId: Track | string) => {
-    // Resolve track if ID was passed (useful for CMS dynamic lookups)
+  const setTrack = useCallback((trackOrId: Track | string) => {
+    // Resolve track
     let newTrack: Track;
     if (typeof trackOrId === 'string') {
-      // Look for a key in our tracks object that matches the ID
       const trackKey = Object.keys(tracks).find(k => tracks[k].id === trackOrId);
-      newTrack = trackKey ? tracks[trackKey] : (trackOrId as any); // fallback to ID as object if not found
+      newTrack = trackKey ? tracks[trackKey] : (trackOrId as any);
     } else {
       newTrack = trackOrId;
     }
@@ -123,52 +114,60 @@ export const AudioProvider: React.FC<{ children: React.ReactNode, initialTracks?
 
     setCurrentTrack(newTrack);
 
-    const a = audioA.current;
-    const b = audioB.current;
-    if (!a || !b) return;
+    const newHowl = getHowl(newTrack.url);
+    const oldHowl = activeHowlRef.current;
 
-    if (!isPlaying) {
-      const targetAudio = activeAudio.current === 'A' ? a : b;
-      targetAudio.src = newTrack.url;
+    if (!isPlayingRef.current) {
+      // Not playing yet — just set the active reference
+      activeHowlRef.current = newHowl;
       return;
     }
 
-    // Crossfade Logic
-    const fadeOutAudio = activeAudio.current === 'A' ? a : b;
-    const fadeInAudio = activeAudio.current === 'A' ? b : a;
+    // === DJ CROSSFADE ===
+    // Fade in the new track
+    newHowl.volume(0);
+    newHowl.play();
+    newHowl.fade(0, 1, 2000);
 
-    fadeInAudio.src = newTrack.url;
-    fadeInAudio.volume = 0;
-    fadeInAudio.play().catch(e => console.warn("Audio play blocked", e));
+    // Fade out the old track
+    if (oldHowl && oldHowl !== newHowl) {
+      oldHowl.fade(oldHowl.volume(), 0, 2000);
+      // Stop the old howl after fade completes to free resources
+      setTimeout(() => {
+        oldHowl.stop();
+      }, 2100);
+    }
 
-    fade(fadeInAudio, 1, 2500);
-    fade(fadeOutAudio, 0, 2500);
+    activeHowlRef.current = newHowl;
+  }, [tracks, currentTrack.id, getHowl]);
 
-    activeAudio.current = activeAudio.current === 'A' ? 'B' : 'A';
-  };
+  const togglePlay = useCallback(() => {
+    const howl = activeHowlRef.current;
+    if (!howl) return;
 
-  const togglePlay = () => {
-    const currentAudio = activeAudio.current === 'A' ? audioA.current : audioB.current;
-    if (!currentAudio) return;
-
-    if (isPlaying) {
-      fade(currentAudio, 0, 1000);
+    if (isPlayingRef.current) {
+      howl.fade(howl.volume(), 0, 1000);
+      setTimeout(() => howl.pause(), 1100);
       setIsPlaying(false);
     } else {
-      currentAudio.play().catch(e => console.log("Interaction required"));
-      fade(currentAudio, 1, 1000);
+      howl.play();
+      howl.fade(0, 1, 1000);
       setIsPlaying(true);
     }
-  };
+  }, []);
 
   // Play a one-shot sound effect
-  const playSfx = (url: string, volume: number = 0.4) => {
-    const sfx = new Audio(url);
-    sfx.volume = volume;
-    sfx.play().catch(() => {
-      // SFX might be blocked if no interaction yet, ignore
+  const playSfx = useCallback((url: string, volume: number = 0.4) => {
+    const sfx = new Howl({
+      src: [url],
+      html5: true,
+      volume: volume,
+      loop: false,
     });
-  };
+    sfx.play();
+    // Auto-cleanup after playback
+    sfx.on('end', () => sfx.unload());
+  }, []);
 
   return (
     <AudioContext.Provider value={{ isPlaying, togglePlay, setTrack, playSfx, currentTrack }}>
