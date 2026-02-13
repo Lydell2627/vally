@@ -15,7 +15,7 @@ const AudioPlayer: React.FC = () => {
          initial={{ opacity: 0, y: 10 }}
          animate={{ opacity: 1, y: 0 }}
          transition={{ delay: 2, duration: 0.8 }}
-         className="fixed bottom-6 right-6 z-[9999] flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 hover:border-white/25 text-white cursor-pointer transition-colors duration-300 group"
+         className="fixed bottom-6 left-6 z-[9999] flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 hover:border-white/25 text-white cursor-pointer transition-colors duration-300 group"
          aria-label={isPlaying ? 'Pause music' : 'Play music'}
       >
          {/* Play/Pause icon */}

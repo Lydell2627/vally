@@ -112,7 +112,7 @@ const Places: React.FC<PlacesProps> = ({ content }) => {
       await fetch('/api/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'place', data: { suggestion: dreamSpot } })
+        body: JSON.stringify({ type: 'place', data: { response: dreamSpot } })
       });
       setHasSubmitted(true);
       setTimeout(() => {
