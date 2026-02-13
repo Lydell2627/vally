@@ -213,7 +213,7 @@ const Proposal: React.FC<ProposalProps> = ({ reactions }) => {
       </div>
 
       <div className="z-10 w-full mt-auto">
-        <Marquee text="JUST ONE CHANCE" reverse className="text-white" />
+        <Marquee text="JUST  ONE CHANCE" reverse className="text-white" />
       </div>
     </section>
   );

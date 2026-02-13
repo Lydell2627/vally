@@ -120,7 +120,7 @@ export default function Home() {
             <AudioPlayer />
             <AmbientBackground />
 
-            <div className="fixed inset-0 z-0 w-full h-full">
+            <div id="home" className="fixed inset-0 z-0 w-full h-full">
               <Hero content={cmsData?.hero} />
             </div>
 
@@ -134,20 +134,26 @@ export default function Home() {
                   <Marquee text="THE STORY SO FAR" className="text-brand-red" />
                 </div>
 
-                <Milestones content={cmsData?.milestones} />
+                <div id="memories">
+                  <Milestones content={cmsData?.milestones} />
+                </div>
 
                 <WhyILikeYou content={cmsData?.whyILikeYou} />
 
                 {/* Dark Sections Group */}
                 <div className="bg-brand-dark text-white relative z-20">
-                  <FutureMemories content={cmsData?.futureMemories} />
+                  <div id="future">
+                    <FutureMemories content={cmsData?.futureMemories} />
+                  </div>
 
                   <Places content={cmsData?.places} />
 
                   <TermsAndConditions content={cmsData?.terms} />
                 </div>
 
-                <Proposal reactions={cmsData?.metrics} />
+                <div id="proposal">
+                  <Proposal reactions={cmsData?.metrics} />
+                </div>
               </div>
 
               <Footer />
