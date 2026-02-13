@@ -51,47 +51,32 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
 
-  // Initialize background Howl — only when we have a valid URL from Sanity
+  // Initialize background Howl when URL is available
   useEffect(() => {
-    if (!bgUrl) {
-      console.log("AudioProvider: No background URL provided, skipping init.");
-      return;
-    }
+    if (!bgUrl) return;
 
-    console.log("AudioProvider: Initializing bg track:", bgUrl);
+    // Clean up any previous instance first
+    if (bgHowlRef.current) {
+      bgHowlRef.current.stop();
+      bgHowlRef.current.unload();
+      bgHowlRef.current = null;
+    }
 
     const bgHowl = new Howl({
       src: [bgUrl],
-      html5: true,
       loop: true,
-      volume: 0,
+      volume: bgVolume,
       preload: true,
-      onload: () => {
-        console.log("AudioProvider: Background track loaded successfully!");
-      },
       onloaderror: (_id, err) => {
-        console.error("AudioProvider: Background load error:", err, "URL:", bgUrl);
-      },
-      onplayerror: (_id, err) => {
-        console.error("AudioProvider: Background play error:", err);
-        // Retry on unlock (browser autoplay policy)
-        bgHowl.once('unlock', () => bgHowl.play());
+        console.error('Audio: bg load error', err);
       },
     });
 
-    // Clean up previous instance
-    const oldHowl = bgHowlRef.current;
-    if (oldHowl) {
-      oldHowl.stop();
-      oldHowl.unload();
-    }
-
     bgHowlRef.current = bgHowl;
 
-    // If already playing (e.g. URL changed while music was on), resume
-    if (isPlayingRef.current) {
+    // If already playing (URL changed while music was on), resume
+    if (isPlayingRef.current && !userPausedRef.current) {
       bgHowl.play();
-      bgHowl.fade(0, bgVolume, 1000);
     }
 
     return () => {
@@ -104,13 +89,10 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
   useEffect(() => {
     if (!reelUrl) return;
 
-    console.log("AudioProvider: Initializing reel track:", reelUrl);
-
     const reelHowl = new Howl({
       src: [reelUrl],
-      html5: true,
       loop: false,
-      volume: 0,
+      volume: reelVolume,
       preload: true,
     });
     reelHowlRef.current = reelHowl;
@@ -119,44 +101,20 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
       reelHowl.stop();
       reelHowl.unload();
     };
-  }, [reelUrl]);
+  }, [reelUrl, reelVolume]);
 
-  // Auto-start background on first user interaction
-  useEffect(() => {
-    if (!bgUrl) return; // Don't auto-start if no URL
-
-    const startOnInteraction = () => {
-      const bg = bgHowlRef.current;
-      if (bg && !isPlayingRef.current) {
-        bg.play();
-        bg.fade(0, bgVolume, 2500);
-        setIsPlaying(true);
-        userPausedRef.current = false;
-      }
-    };
-
-    document.addEventListener('touchstart', startOnInteraction, { once: true });
-    document.addEventListener('click', startOnInteraction, { once: true });
-
-    return () => {
-      document.removeEventListener('touchstart', startOnInteraction);
-      document.removeEventListener('click', startOnInteraction);
-    };
-  }, [bgVolume, bgUrl]);
-
-  // Toggle play/pause (user-facing button)
+  // Toggle play/pause — called by AudioPlayer button (user gesture required)
   const togglePlay = useCallback(() => {
     const bg = bgHowlRef.current;
     if (!bg) return;
 
     if (isPlayingRef.current) {
-      bg.fade(bg.volume(), 0, 800);
-      setTimeout(() => bg.pause(), 900);
+      bg.pause();
       setIsPlaying(false);
       userPausedRef.current = true;
     } else {
+      bg.volume(bgVolume);
       bg.play();
-      bg.fade(0, bgVolume, 800);
       setIsPlaying(true);
       userPausedRef.current = false;
     }
@@ -166,8 +124,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
   const pauseBg = useCallback(() => {
     const bg = bgHowlRef.current;
     if (bg && isPlayingRef.current) {
-      bg.fade(bg.volume(), 0, 1000);
-      setTimeout(() => bg.pause(), 1100);
+      bg.pause();
       setIsPlaying(false);
     }
   }, []);
@@ -176,8 +133,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
   const resumeBg = useCallback(() => {
     const bg = bgHowlRef.current;
     if (bg && !isPlayingRef.current && !userPausedRef.current) {
+      bg.volume(bgVolume);
       bg.play();
-      bg.fade(0, bgVolume, 1000);
       setIsPlaying(true);
     }
   }, [bgVolume]);
@@ -187,9 +144,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
     const reel = reelHowlRef.current;
     if (reel) {
       reel.stop();
-      reel.volume(0);
+      reel.volume(reelVolume);
       reel.play();
-      reel.fade(0, reelVolume, 1000);
     }
   }, [reelVolume]);
 
@@ -197,8 +153,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
   const stopReel = useCallback(() => {
     const reel = reelHowlRef.current;
     if (reel) {
-      reel.fade(reel.volume(), 0, 800);
-      setTimeout(() => reel.stop(), 900);
+      reel.stop();
     }
   }, []);
 
@@ -206,7 +161,6 @@ export const AudioProvider: React.FC<{ children: React.ReactNode; audioConfig?: 
   const playSfx = useCallback((url: string, volume: number = 0.4) => {
     const sfx = new Howl({
       src: [url],
-      html5: true,
       volume,
       loop: false,
     });
