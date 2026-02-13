@@ -28,7 +28,7 @@ const instrumentSerif = Instrument_Serif({
 
 export const metadata: Metadata = {
   title: "Vally",
-  description: "An immersive, storytelling-driven Valentine's proposal website inspired by high-end branding portfolios.",
+  description: "",
 };
 
 export default function RootLayout({
