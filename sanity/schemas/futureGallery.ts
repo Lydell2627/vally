@@ -22,11 +22,23 @@ export const futureGallery = defineType({
         }),
         defineField({
             name: 'image',
-            title: 'Gallery Image',
+            title: 'Cover Image',
             type: 'image',
-            description: 'The photo to display in the gallery',
+            description: 'The main/cover photo for this gallery entry',
             options: { hotspot: true },
             validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+            name: 'images',
+            title: 'Additional Photos (Gallery)',
+            type: 'array',
+            description: 'Add more photos to create a gallery/variation for this entry',
+            of: [
+                {
+                    type: 'image',
+                    options: { hotspot: true },
+                },
+            ],
         }),
         defineField({
             name: 'order',

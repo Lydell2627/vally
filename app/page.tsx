@@ -88,7 +88,11 @@ export default function Home() {
               description: r.text || r.description,
             })),
             futureMemories: data.futureMemories?.map((fm: any) => ({ ...fm, image: resolveImage(fm.image) })),
-            futureGallery: data.futureGallery?.map((fg: any) => ({ ...fg, image: resolveImage(fg.image) })),
+            futureGallery: data.futureGallery?.map((fg: any) => ({
+              ...fg,
+              image: resolveImage(fg.image),
+              images: fg.images?.map((img: any) => resolveImage(img)) || [],
+            })),
             places: data.places?.map((p: any) => ({ ...p, image: resolveImage(p.image) })),
             terms: data.terms?.map((t: any) => ({
               ...t,

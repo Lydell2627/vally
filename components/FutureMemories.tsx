@@ -20,6 +20,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
 
   // Gallery Lightbox State
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [photoIndex, setPhotoIndex] = useState(0);
 
   const memoriesData = content || FUTURE_MEMORIES;
   const galleryData = gallery || [];
@@ -74,14 +75,47 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
   // Safe access to current memory
   const currentMemory = memoriesData[currentIndex] || { title: '', description: '', image: '' };
 
+  // Build all images for current lightbox entry
+  const currentGalleryEntry = lightboxIndex !== null ? galleryData[lightboxIndex] : null;
+  const allPhotos = currentGalleryEntry
+    ? [currentGalleryEntry.image, ...(currentGalleryEntry.images || [])].filter(Boolean)
+    : [];
+  const hasMultiplePhotos = allPhotos.length > 1;
+
   // Lightbox navigation
-  const openLightbox = (index: number) => setLightboxIndex(index);
-  const closeLightbox = () => setLightboxIndex(null);
-  const prevLightbox = () => {
-    if (lightboxIndex !== null && lightboxIndex > 0) setLightboxIndex(lightboxIndex - 1);
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setPhotoIndex(0);
   };
-  const nextLightbox = () => {
-    if (lightboxIndex !== null && lightboxIndex < galleryData.length - 1) setLightboxIndex(lightboxIndex + 1);
+  const closeLightbox = () => {
+    setLightboxIndex(null);
+    setPhotoIndex(0);
+  };
+
+  // Photo navigation (within same entry)
+  const prevPhoto = () => {
+    if (hasMultiplePhotos) {
+      setPhotoIndex((prev) => (prev - 1 + allPhotos.length) % allPhotos.length);
+    }
+  };
+  const nextPhoto = () => {
+    if (hasMultiplePhotos) {
+      setPhotoIndex((prev) => (prev + 1) % allPhotos.length);
+    }
+  };
+
+  // Entry navigation (between gallery entries)
+  const prevEntry = () => {
+    if (lightboxIndex !== null && lightboxIndex > 0) {
+      setLightboxIndex(lightboxIndex - 1);
+      setPhotoIndex(0);
+    }
+  };
+  const nextEntry = () => {
+    if (lightboxIndex !== null && lightboxIndex < galleryData.length - 1) {
+      setLightboxIndex(lightboxIndex + 1);
+      setPhotoIndex(0);
+    }
   };
 
   // Keyboard navigation for lightbox
@@ -89,12 +123,18 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
     if (lightboxIndex === null) return;
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeLightbox();
-      if (e.key === 'ArrowLeft') prevLightbox();
-      if (e.key === 'ArrowRight') nextLightbox();
+      if (e.key === 'ArrowLeft') {
+        if (hasMultiplePhotos) prevPhoto();
+        else prevEntry();
+      }
+      if (e.key === 'ArrowRight') {
+        if (hasMultiplePhotos) nextPhoto();
+        else nextEntry();
+      }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [lightboxIndex, galleryData.length]);
+  }, [lightboxIndex, photoIndex, galleryData.length, hasMultiplePhotos, allPhotos.length]);
 
   return (
     <section id="future" ref={containerRef} className="bg-brand-dark text-white py-24 md:py-40 px-6 overflow-hidden relative min-h-screen">
@@ -394,34 +434,34 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
               className="relative w-full h-full flex flex-col items-center justify-center px-4 md:px-16 pt-14 pb-28 md:pb-20"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Navigation Arrows */}
-              {lightboxIndex > 0 && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); prevLightbox(); }}
-                  className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover/lightbox:opacity-100 md:transform md:-translate-x-4 md:group-hover/lightbox:translate-x-0 duration-300"
-                  aria-label="Previous photo"
-                >
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                  </svg>
-                </button>
-              )}
+              {/* Photo Navigation Arrows (cycle within gallery entry) */}
+              {hasMultiplePhotos && (
+                <>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); prevPhoto(); }}
+                    className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover/lightbox:opacity-100 md:transform md:-translate-x-4 md:group-hover/lightbox:translate-x-0 duration-300"
+                    aria-label="Previous photo"
+                  >
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                  </button>
 
-              {lightboxIndex < galleryData.length - 1 && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); nextLightbox(); }}
-                  className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover/lightbox:opacity-100 md:transform md:translate-x-4 md:group-hover/lightbox:translate-x-0 duration-300"
-                  aria-label="Next photo"
-                >
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                  </svg>
-                </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); nextPhoto(); }}
+                    className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover/lightbox:opacity-100 md:transform md:translate-x-4 md:group-hover/lightbox:translate-x-0 duration-300"
+                    aria-label="Next photo"
+                  >
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </button>
+                </>
               )}
 
               {/* Image Area with Swipe */}
               <motion.div
-                key={lightboxIndex}
+                key={`${lightboxIndex}-${photoIndex}`}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
@@ -432,26 +472,31 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
                 dragElastic={0.7}
                 onDragEnd={(event, info) => {
                   const SWIPE_THRESHOLD = 50;
-                  if (info.offset.x > SWIPE_THRESHOLD) prevLightbox();
-                  else if (info.offset.x < -SWIPE_THRESHOLD) nextLightbox();
+                  if (info.offset.x > SWIPE_THRESHOLD) {
+                    if (hasMultiplePhotos) prevPhoto();
+                    else prevEntry();
+                  } else if (info.offset.x < -SWIPE_THRESHOLD) {
+                    if (hasMultiplePhotos) nextPhoto();
+                    else nextEntry();
+                  }
                 }}
               >
                 <img
-                  src={galleryData[lightboxIndex].image}
+                  src={allPhotos[photoIndex] || galleryData[lightboxIndex].image}
                   alt={galleryData[lightboxIndex].title}
                   draggable={false}
                   className="max-w-full max-h-full object-contain shadow-2xl rounded-sm select-none"
                 />
               </motion.div>
 
-              {/* Gallery Dots */}
-              {galleryData.length > 1 && (
+              {/* Photo Dots (within current entry) */}
+              {hasMultiplePhotos && (
                 <div className="flex items-center gap-2 mt-3">
-                  {galleryData.map((_, i) => (
+                  {allPhotos.map((_, i) => (
                     <button
                       key={i}
-                      onClick={(e) => { e.stopPropagation(); setLightboxIndex(i); }}
-                      className={`rounded-full transition-all ${i === lightboxIndex
+                      onClick={(e) => { e.stopPropagation(); setPhotoIndex(i); }}
+                      className={`rounded-full transition-all ${i === photoIndex
                         ? 'w-3 h-3 bg-brand-red'
                         : 'w-2 h-2 bg-white/30 hover:bg-white/60'
                         }`}
@@ -471,10 +516,34 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
                       {galleryData[lightboxIndex].description}
                     </p>
                   )}
-                  <span className="text-white/30 font-display text-sm tracking-widest mt-2">
-                    {(lightboxIndex + 1).toString().padStart(2, '0')} / {galleryData.length.toString().padStart(2, '0')}
-                  </span>
                 </div>
+              </div>
+
+              {/* Entry Navigation Bar (navigate between gallery entries) */}
+              <div className="absolute bottom-4 md:bottom-6 left-0 right-0 flex items-center justify-center gap-6 z-50 pointer-events-auto">
+                <button
+                  onClick={(e) => { e.stopPropagation(); prevEntry(); }}
+                  className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-xs uppercase tracking-widest font-sans"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                  <span className="hidden md:inline">Prev</span>
+                </button>
+
+                <span className="text-white/30 font-display text-sm tracking-widest">
+                  {(lightboxIndex + 1).toString().padStart(2, '0')} / {galleryData.length.toString().padStart(2, '0')}
+                </span>
+
+                <button
+                  onClick={(e) => { e.stopPropagation(); nextEntry(); }}
+                  className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-xs uppercase tracking-widest font-sans"
+                >
+                  <span className="hidden md:inline">Next</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
               </div>
             </div>
 
@@ -485,7 +554,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
               transition={{ delay: 1.5, duration: 1 }}
               className="absolute bottom-16 left-1/2 -translate-x-1/2 md:hidden text-white/20 text-[10px] uppercase tracking-widest pointer-events-none whitespace-nowrap"
             >
-              Swipe to browse photos
+              {hasMultiplePhotos ? 'Swipe for photos' : 'Swipe to browse'}
             </motion.div>
           </motion.div>
         )}
