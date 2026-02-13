@@ -123,7 +123,7 @@ export default function Home() {
 
         {!loading && (
           <>
-            <AudioPlayer />
+            {/* <AudioPlayer /> — hidden until audio is fixed */}
             <AmbientBackground />
 
             <div id="home" className="fixed inset-0 z-0 w-full h-full">
