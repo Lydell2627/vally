@@ -183,7 +183,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
 
         {/* 
           ========================================
-          GALLERY SECTION (New — clickable photos)
+          GALLERY SECTION — Cover Image + Lightbox
           ========================================
         */}
         {galleryData.length > 0 && (
@@ -198,38 +198,59 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
                 The <span className="text-brand-red">Gallery</span>
               </h3>
               <p className="font-serif italic text-lg md:text-2xl text-gray-400">
-                Tap any photo to see it up close.
+                {galleryData.length} photos waiting to be taken.
               </p>
             </motion.div>
 
-            {/* Photo Grid */}
-            <div className="columns-2 md:columns-3 gap-4 md:gap-6">
-              {galleryData.map((item, i) => (
-                <motion.div
-                  key={item.id || `gallery-${i}`}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-30px" }}
-                  transition={{ delay: (i % 3) * 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                  className="mb-4 md:mb-6 break-inside-avoid cursor-pointer group"
-                  onClick={() => openLightbox(i)}
-                >
-                  <div className="relative overflow-hidden rounded-sm border border-white/5 group-hover:border-white/20 transition-colors duration-300">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                    />
-                    {/* Hover overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                      <span className="font-display text-sm md:text-base uppercase tracking-wider text-white drop-shadow-lg">
-                        {item.title}
-                      </span>
+            {/* Cover Image — click to open gallery */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+              className="relative cursor-pointer group max-w-4xl mx-auto"
+              onClick={() => openLightbox(0)}
+            >
+              <div className="relative overflow-hidden rounded-sm border border-white/10 group-hover:border-white/30 transition-all duration-500">
+                {/* Main cover photo */}
+                <img
+                  src={galleryData[0].image}
+                  alt={galleryData[0].title}
+                  className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
+                />
+
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent flex flex-col items-center justify-end pb-8 md:pb-12">
+                  {/* Photo count badge */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex -space-x-2">
+                      {galleryData.slice(0, 4).map((item, i) => (
+                        <div
+                          key={i}
+                          className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-black overflow-hidden"
+                        >
+                          <img src={item.image} alt="" className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                      {galleryData.length > 4 && (
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-black bg-brand-red flex items-center justify-center">
+                          <span className="font-display text-[10px] text-white">+{galleryData.length - 4}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </motion.div>
-              ))}
-            </div>
+                  <span className="font-display text-lg md:text-2xl uppercase tracking-widest text-white drop-shadow-lg">
+                    View Gallery
+                  </span>
+                  <span className="font-serif italic text-sm text-white/60 mt-1">
+                    {galleryData.length} photos
+                  </span>
+                </div>
+
+                {/* Subtle shimmer on hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+              </div>
+            </motion.div>
           </div>
         )}
       </div>
@@ -343,7 +364,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
 
       {/* 
         ========================================
-        GALLERY LIGHTBOX
+        GALLERY LIGHTBOX (Milestones-style)
         ========================================
       */}
       <AnimatePresence>
@@ -353,72 +374,118 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center"
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-dark/95 backdrop-blur-md group/lightbox"
             onClick={closeLightbox}
           >
             {/* Close Button */}
             <button
               onClick={closeLightbox}
-              className="absolute top-6 right-6 z-50 text-white/50 hover:text-white transition-colors p-4"
+              className="absolute top-4 right-4 md:top-6 md:right-6 z-50 text-white/50 hover:text-white transition-colors"
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 6L6 18M6 6l12 12" />
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
             </button>
 
-            {/* Previous Arrow */}
-            {lightboxIndex > 0 && (
-              <button
-                onClick={(e) => { e.stopPropagation(); prevLightbox(); }}
-                className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-50 text-white/40 hover:text-white transition-colors p-4"
-              >
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-              </button>
-            )}
-
-            {/* Next Arrow */}
-            {lightboxIndex < galleryData.length - 1 && (
-              <button
-                onClick={(e) => { e.stopPropagation(); nextLightbox(); }}
-                className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-50 text-white/40 hover:text-white transition-colors p-4"
-              >
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
-              </button>
-            )}
-
-            {/* Image + Caption */}
-            <motion.div
-              key={lightboxIndex}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="relative max-w-5xl max-h-[85vh] mx-4 flex flex-col items-center"
+            {/* Main Content Area */}
+            <div
+              className="relative w-full h-full flex flex-col items-center justify-center px-4 md:px-16 pt-14 pb-28 md:pb-20"
               onClick={(e) => e.stopPropagation()}
             >
-              <img
-                src={galleryData[lightboxIndex].image}
-                alt={galleryData[lightboxIndex].title}
-                className="max-w-full max-h-[70vh] object-contain rounded-sm shadow-2xl"
-              />
-              <div className="mt-6 text-center">
-                <h3 className="font-display text-xl md:text-3xl uppercase text-white mb-2">
-                  {galleryData[lightboxIndex].title}
-                </h3>
-                {galleryData[lightboxIndex].description && (
-                  <p className="font-serif italic text-base md:text-lg text-white/70 max-w-xl">
-                    {galleryData[lightboxIndex].description}
-                  </p>
-                )}
+              {/* Navigation Arrows */}
+              {lightboxIndex > 0 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); prevLightbox(); }}
+                  className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover/lightbox:opacity-100 md:transform md:-translate-x-4 md:group-hover/lightbox:translate-x-0 duration-300"
+                  aria-label="Previous photo"
+                >
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                </button>
+              )}
+
+              {lightboxIndex < galleryData.length - 1 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); nextLightbox(); }}
+                  className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover/lightbox:opacity-100 md:transform md:translate-x-4 md:group-hover/lightbox:translate-x-0 duration-300"
+                  aria-label="Next photo"
+                >
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+              )}
+
+              {/* Image Area with Swipe */}
+              <motion.div
+                key={lightboxIndex}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="relative w-full flex-1 flex items-center justify-center min-h-0"
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.7}
+                onDragEnd={(event, info) => {
+                  const SWIPE_THRESHOLD = 50;
+                  if (info.offset.x > SWIPE_THRESHOLD) prevLightbox();
+                  else if (info.offset.x < -SWIPE_THRESHOLD) nextLightbox();
+                }}
+              >
+                <img
+                  src={galleryData[lightboxIndex].image}
+                  alt={galleryData[lightboxIndex].title}
+                  draggable={false}
+                  className="max-w-full max-h-full object-contain shadow-2xl rounded-sm select-none"
+                />
+              </motion.div>
+
+              {/* Gallery Dots */}
+              {galleryData.length > 1 && (
+                <div className="flex items-center gap-2 mt-3">
+                  {galleryData.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={(e) => { e.stopPropagation(); setLightboxIndex(i); }}
+                      className={`rounded-full transition-all ${i === lightboxIndex
+                        ? 'w-3 h-3 bg-brand-red'
+                        : 'w-2 h-2 bg-white/30 hover:bg-white/60'
+                        }`}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Bottom Info */}
+              <div className="w-full mt-4 md:mt-6 pointer-events-none">
+                <div className="flex flex-col items-center text-center gap-1">
+                  <h3 className="font-display text-2xl md:text-5xl text-white uppercase tracking-tight leading-none">
+                    {galleryData[lightboxIndex].title}
+                  </h3>
+                  {galleryData[lightboxIndex].description && (
+                    <p className="font-serif italic text-base md:text-lg text-white/60 max-w-xl mt-2">
+                      {galleryData[lightboxIndex].description}
+                    </p>
+                  )}
+                  <span className="text-white/30 font-display text-sm tracking-widest mt-2">
+                    {(lightboxIndex + 1).toString().padStart(2, '0')} / {galleryData.length.toString().padStart(2, '0')}
+                  </span>
+                </div>
               </div>
-              {/* Counter */}
-              <p className="mt-4 font-display text-xs uppercase tracking-widest text-white/30">
-                {lightboxIndex + 1} / {galleryData.length}
-              </p>
+            </div>
+
+            {/* Mobile Swipe Hint */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.5, duration: 1 }}
+              className="absolute bottom-16 left-1/2 -translate-x-1/2 md:hidden text-white/20 text-[10px] uppercase tracking-widest pointer-events-none whitespace-nowrap"
+            >
+              Swipe to browse photos
             </motion.div>
           </motion.div>
         )}
@@ -428,3 +495,4 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
 };
 
 export default FutureMemories;
+
