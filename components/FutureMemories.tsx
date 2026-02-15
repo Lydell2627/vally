@@ -64,6 +64,18 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
     }
   }, [mode, memoriesData]);
 
+  // Lock body scroll when overlay is active
+  useEffect(() => {
+    if (mode === 'PLAYING' || lightboxIndex !== null) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mode, lightboxIndex]);
+
   // Safe access to current memory
   const currentMemory = memoriesData[currentIndex] || { title: '', description: '', image: '' };
 

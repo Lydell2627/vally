@@ -35,6 +35,18 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
     setGalleryIndex(0);
   }, [selectedIndex]);
 
+  // Lock body scroll when lightbox is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   // --- Photo Navigation (within same memory) ---
   const handlePrevPhoto = (e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -143,6 +155,7 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
     <AnimatePresence>
       {isOpen && currentMilestone && (
         <motion.div
+          key="lightbox-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
