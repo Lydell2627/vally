@@ -151,25 +151,27 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
               </>
             )}
 
-            {/* Image Area */}
+            {/* Image Area — stable draggable container, image animates inside */}
             <motion.div
-              key={`${currentMilestone.id}-${galleryIndex}`}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
               className="pointer-events-auto relative w-full flex-1 flex items-center justify-center min-h-0 cursor-default"
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.7}
               onDragEnd={handleDragEnd}
             >
-              <img
-                src={currentImage}
-                alt={currentMilestone.title}
-                draggable={false}
-                className="max-w-full max-h-full object-contain shadow-2xl rounded-sm select-none"
-              />
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={`${currentMilestone.id}-${galleryIndex}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  src={currentImage}
+                  alt={currentMilestone.title}
+                  draggable={false}
+                  className="max-w-full max-h-full object-contain shadow-2xl rounded-sm select-none"
+                />
+              </AnimatePresence>
             </motion.div>
 
             {/* Gallery Dots (photo indicators) */}

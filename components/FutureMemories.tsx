@@ -438,13 +438,8 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
                 </>
               )}
 
-              {/* Image Area with Swipe */}
+              {/* Image Area — stable draggable container, image animates inside */}
               <motion.div
-                key={`${lightboxIndex}-${photoIndex}`}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
                 className="pointer-events-auto relative w-full flex-1 flex items-center justify-center min-h-0 cursor-default"
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
@@ -460,12 +455,19 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
                   }
                 }}
               >
-                <img
-                  src={allPhotos[photoIndex] || galleryData[lightboxIndex].image}
-                  alt={galleryData[lightboxIndex].title}
-                  draggable={false}
-                  className="max-w-full max-h-full object-contain shadow-2xl rounded-sm select-none"
-                />
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={`${lightboxIndex}-${photoIndex}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    src={allPhotos[photoIndex] || galleryData[lightboxIndex].image}
+                    alt={galleryData[lightboxIndex].title}
+                    draggable={false}
+                    className="max-w-full max-h-full object-contain shadow-2xl rounded-sm select-none"
+                  />
+                </AnimatePresence>
               </motion.div>
 
               {/* Photo Dots (within current entry) */}
