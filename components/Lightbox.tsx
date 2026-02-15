@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { Milestone } from '../constants';
 
@@ -23,15 +23,8 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
   const currentImage = allImages[galleryIndex] || currentMilestone?.image || '';
   const hasGallery = allImages.length > 1;
 
-  // Zoom State
-  const [scale, setScale] = useState(1);
-  const pinchRef = useRef<{ dist: number; startScale: number } | null>(null);
-  const lastTapRef = useRef<number>(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Reset zoom and gallery index when changing slides
+  // Reset gallery index when changing slides
   useEffect(() => {
-    setScale(1);
     setGalleryIndex(0);
   }, [selectedIndex]);
 
@@ -75,7 +68,7 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
     onChange(newIndex);
   };
 
-  // Keyboard: arrows = photos, shift+arrows = memories
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
@@ -94,7 +87,7 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, selectedIndex, galleryIndex, hasGallery, allImages.length]);
 
-  // Swipe: swipe = photos (if gallery), otherwise memories
+  // Swipe navigation
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const SWIPE_THRESHOLD = 50;
     if (info.offset.x > SWIPE_THRESHOLD) {
@@ -106,51 +99,6 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
     }
   };
 
-  // --- Zoom Logic ---
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      pinchRef.current = { dist, startScale: scale };
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2 && pinchRef.current) {
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      const ratio = dist / pinchRef.current.dist;
-      const newScale = Math.min(Math.max(1, pinchRef.current.startScale * ratio), 4);
-      setScale(newScale);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    pinchRef.current = null;
-    if (scale < 1.1) setScale(1);
-  };
-
-  const handleDoubleTap = (e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation();
-    const now = Date.now();
-    const DOUBLE_TAP_DELAY = 300;
-    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-      if (scale > 1.2) {
-        setScale(1);
-      } else {
-        setScale(2.5);
-      }
-    } else {
-      lastTapRef.current = now;
-    }
-  };
-
-  const isZoomed = scale > 1.1;
-
   return (
     <AnimatePresence>
       {isOpen && currentMilestone && (
@@ -161,11 +109,13 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
           className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-dark/95 backdrop-blur-md group"
-          onClick={onClose}
         >
+          {/* Invisible backdrop — click to close */}
+          <div className="absolute inset-0 z-0" onClick={onClose} />
+
           {/* Close Button */}
           <button
-            onClick={onClose}
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
             className="absolute top-4 right-4 md:top-6 md:right-6 z-50 text-white/50 hover:text-white transition-colors"
           >
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -175,16 +125,13 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
           </button>
 
           {/* ===== MAIN CONTENT AREA ===== */}
-          <div
-            className="relative w-full h-full flex flex-col items-center justify-center px-4 md:px-16 pt-14 pb-28 md:pb-20"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="relative w-full h-full flex flex-col items-center justify-center px-4 md:px-16 pt-14 pb-28 md:pb-20 pointer-events-none">
             {/* Photo Navigation Arrows (cycle within gallery) */}
             {hasGallery && (
               <>
                 <button
                   onClick={handlePrevPhoto}
-                  className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover:opacity-100 md:transform md:-translate-x-4 md:group-hover:translate-x-0 duration-300"
+                  className="pointer-events-auto absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover:opacity-100 md:transform md:-translate-x-4 md:group-hover:translate-x-0 duration-300"
                   aria-label="Previous photo"
                 >
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -194,7 +141,7 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
 
                 <button
                   onClick={handleNextPhoto}
-                  className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover:opacity-100 md:transform md:translate-x-4 md:group-hover:translate-x-0 duration-300"
+                  className="pointer-events-auto absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover:opacity-100 md:transform md:translate-x-4 md:group-hover:translate-x-0 duration-300"
                   aria-label="Next photo"
                 >
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -211,38 +158,23 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="relative w-full flex-1 flex items-center justify-center min-h-0"
-              drag={isZoomed ? false : "x"}
+              className="pointer-events-auto relative w-full flex-1 flex items-center justify-center min-h-0 cursor-default"
+              drag="x"
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.7}
               onDragEnd={handleDragEnd}
-              ref={containerRef}
             >
-              <motion.div
-                className={`w-full h-full flex items-center justify-center ${isZoomed ? 'cursor-grab active:cursor-grabbing' : 'cursor-zoom-in'}`}
-                animate={{ scale: scale }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                drag={isZoomed}
-                dragConstraints={containerRef}
-                dragElastic={0.2}
-                onClick={handleDoubleTap}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                style={{ touchAction: 'none' }}
-              >
-                <img
-                  src={currentImage}
-                  alt={currentMilestone.title}
-                  draggable={false}
-                  className="max-w-full max-h-full object-contain shadow-2xl rounded-sm select-none"
-                />
-              </motion.div>
+              <img
+                src={currentImage}
+                alt={currentMilestone.title}
+                draggable={false}
+                className="max-w-full max-h-full object-contain shadow-2xl rounded-sm select-none"
+              />
             </motion.div>
 
             {/* Gallery Dots (photo indicators) */}
             {hasGallery && (
-              <div className="flex items-center gap-2 mt-3">
+              <div className="pointer-events-auto flex items-center gap-2 mt-3">
                 {allImages.map((_, i) => (
                   <button
                     key={i}
@@ -257,7 +189,7 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
             )}
 
             {/* Bottom Info Bar */}
-            <div className="w-full mt-4 md:mt-6 pointer-events-none">
+            <div className="w-full mt-4 md:mt-6">
               <div className="flex flex-col items-center text-center gap-1">
                 <span className="font-serif italic text-brand-red text-base md:text-lg tracking-wide">
                   {currentMilestone.year} — {currentMilestone.category}
@@ -269,7 +201,7 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
             </div>
 
             {/* Memory Navigation Bar (separate from photo arrows) */}
-            <div className="absolute bottom-4 md:bottom-6 left-0 right-0 flex items-center justify-center gap-6 z-50 pointer-events-auto">
+            <div className="pointer-events-auto absolute bottom-4 md:bottom-6 left-0 right-0 flex items-center justify-center gap-6 z-50">
               <button
                 onClick={handlePrevMemory}
                 className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-xs uppercase tracking-widest font-sans"
@@ -303,7 +235,7 @@ const Lightbox: React.FC<LightboxProps> = ({ selectedIndex, milestones, onClose,
             transition={{ delay: 1.5, duration: 1 }}
             className="absolute bottom-16 left-1/2 -translate-x-1/2 md:hidden text-white/20 text-[10px] uppercase tracking-widest pointer-events-none whitespace-nowrap"
           >
-            {hasGallery ? 'Swipe for photos • Double tap to zoom' : 'Double tap to zoom'}
+            {hasGallery ? 'Swipe for photos' : 'Swipe to browse'}
           </motion.div>
         </motion.div>
       )}

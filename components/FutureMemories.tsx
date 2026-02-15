@@ -396,11 +396,13 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-dark/95 backdrop-blur-md group/lightbox"
-            onClick={closeLightbox}
           >
+            {/* Invisible backdrop — click to close */}
+            <div className="absolute inset-0 z-0" onClick={closeLightbox} />
+
             {/* Close Button */}
             <button
-              onClick={closeLightbox}
+              onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
               className="absolute top-4 right-4 md:top-6 md:right-6 z-50 text-white/50 hover:text-white transition-colors"
             >
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -409,17 +411,14 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
               </svg>
             </button>
 
-            {/* Main Content Area */}
-            <div
-              className="relative w-full h-full flex flex-col items-center justify-center px-4 md:px-16 pt-14 pb-28 md:pb-20"
-              onClick={(e) => e.stopPropagation()}
-            >
+            {/* Main Content Area — pointer-events-none, individual elements opt-in */}
+            <div className="relative w-full h-full flex flex-col items-center justify-center px-4 md:px-16 pt-14 pb-28 md:pb-20 pointer-events-none">
               {/* Photo Navigation Arrows (cycle within gallery entry) */}
               {hasMultiplePhotos && (
                 <>
                   <button
                     onClick={(e) => { e.stopPropagation(); prevPhoto(); }}
-                    className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover/lightbox:opacity-100 md:transform md:-translate-x-4 md:group-hover/lightbox:translate-x-0 duration-300"
+                    className="pointer-events-auto absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover/lightbox:opacity-100 md:transform md:-translate-x-4 md:group-hover/lightbox:translate-x-0 duration-300"
                     aria-label="Previous photo"
                   >
                     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -429,7 +428,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
 
                   <button
                     onClick={(e) => { e.stopPropagation(); nextPhoto(); }}
-                    className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover/lightbox:opacity-100 md:transform md:translate-x-4 md:group-hover/lightbox:translate-x-0 duration-300"
+                    className="pointer-events-auto absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-50 text-white/70 hover:text-white transition-all p-2 md:p-4 opacity-0 group-hover/lightbox:opacity-100 md:transform md:translate-x-4 md:group-hover/lightbox:translate-x-0 duration-300"
                     aria-label="Next photo"
                   >
                     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -446,7 +445,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                className="relative w-full flex-1 flex items-center justify-center min-h-0"
+                className="pointer-events-auto relative w-full flex-1 flex items-center justify-center min-h-0 cursor-default"
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.7}
@@ -471,7 +470,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
 
               {/* Photo Dots (within current entry) */}
               {hasMultiplePhotos && (
-                <div className="flex items-center gap-2 mt-3">
+                <div className="pointer-events-auto flex items-center gap-2 mt-3">
                   {allPhotos.map((_, i) => (
                     <button
                       key={i}
@@ -486,7 +485,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
               )}
 
               {/* Bottom Info */}
-              <div className="w-full mt-4 md:mt-6 pointer-events-none">
+              <div className="w-full mt-4 md:mt-6">
                 <div className="flex flex-col items-center text-center gap-1">
                   <h3 className="font-display text-2xl md:text-5xl text-white uppercase tracking-tight leading-none">
                     {galleryData[lightboxIndex].title}
@@ -500,7 +499,7 @@ const FutureMemories: React.FC<FutureMemoriesProps> = ({ content, gallery }) => 
               </div>
 
               {/* Entry Navigation Bar (navigate between gallery entries) */}
-              <div className="absolute bottom-4 md:bottom-6 left-0 right-0 flex items-center justify-center gap-6 z-50 pointer-events-auto">
+              <div className="pointer-events-auto absolute bottom-4 md:bottom-6 left-0 right-0 flex items-center justify-center gap-6 z-50">
                 <button
                   onClick={(e) => { e.stopPropagation(); prevEntry(); }}
                   className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-xs uppercase tracking-widest font-sans"
