@@ -51,11 +51,12 @@ const ParallaxLayer: React.FC<LayerProps> = ({ children, className = "", depth =
 interface MilestoneCardProps {
   milestone: Milestone;
   index: number;
+  layoutType: number;
   onClick: () => void;
   total: number;
 }
 
-const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick, total }) => {
+const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, layoutType, onClick, total }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
@@ -63,8 +64,6 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, index, onClick
     target: containerRef,
     offset: ["start end", "end start"]
   });
-
-  const layoutType = index % 3;
 
   // Grayscale effect — lightweight CSS filter, runs on both mobile & desktop
   const imageFilter = useTransform(
@@ -236,7 +235,16 @@ const Milestones: React.FC<MilestonesProps> = ({ content }) => {
 
   const milestonesData = content || MILESTONES;
 
-
+  // Compute layout types: special → Layout 2, non-special → cycle 0, 1
+  const layoutTypes = useMemo(() => {
+    let nonSpecialCount = 0;
+    return milestonesData.map((m) => {
+      if (m.isSpecial) return 2;
+      const layout = nonSpecialCount % 2;
+      nonSpecialCount++;
+      return layout;
+    });
+  }, [milestonesData]);
 
   return (
     <section id="memories" ref={containerRef} className="relative w-full bg-brand-light">
@@ -248,6 +256,7 @@ const Milestones: React.FC<MilestonesProps> = ({ content }) => {
             <MilestoneCard
               milestone={milestone}
               index={index}
+              layoutType={layoutTypes[index]}
               total={milestonesData.length}
               onClick={() => setSelectedIndex(index)}
             />

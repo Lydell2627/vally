@@ -14,6 +14,13 @@ export const milestone = defineType({
             validation: (Rule) => Rule.required().max(80),
         }),
         defineField({
+            name: 'isSpecial',
+            title: '⭐ Special Memory',
+            type: 'boolean',
+            description: 'Toggle ON for landmark moments (first date, first kiss, etc.) — gives this memory a premium dark layout',
+            initialValue: false,
+        }),
+        defineField({
             name: 'category',
             title: 'Category / Subtitle',
             type: 'string',

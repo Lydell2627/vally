@@ -24,6 +24,7 @@ export interface Milestone {
   image: string;
   backgroundImage?: string;
   images?: string[];
+  isSpecial?: boolean;
 }
 
 export const MILESTONES: Milestone[] = [
