@@ -96,7 +96,7 @@ const Footer: React.FC = () => {
               <h3 className="font-display text-sm uppercase tracking-widest text-brand-red mb-6">Connect</h3>
               <ul className="space-y-4 font-serif text-base md:text-lg text-white/60">
                 <li><a href="https://www.instagram.com/lydellldsouzaa?igsh=MTVtbDczNXNlcXlrdQ%3D%3D&utm_source=qr" className="hover:text-white transition-colors">Instagram</a></li>
-                <li><a href="https://open.spotify.com/playlist/26h7oEW0MzhjzyKrz6Hqv5?si=c18aa3b8bb34456c" className="hover:text-white transition-colors">Spotify</a></li>
+                <li><a href="https://open.spotify.com/playlist/7HFXYmCv2e715KwRqRMl2A?si=cce034bce0fe4f84" className="hover:text-white transition-colors">Spotify</a></li>
                 <li><a href="https://wa.me/918970689128" className="hover:text-white transition-colors">Message Me</a></li>
               </ul>
               <div className="mt-8 p-4 bg-white/5 rounded-lg border border-white/10 hidden md:block">
